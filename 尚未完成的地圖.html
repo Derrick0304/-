@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>尚未完成的地圖</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&family=Noto+Sans+TC:wght@400;500;700&family=LXGW+WenKai+TC&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 頂部固定分頁列切換「資料手冊」與「影像地圖」；兩個分頁的樣式各自限定在自己的容器內 */
+:root{
+  --paper:#f4ede0;--paper-2:#ebe1cd;--film:#e0a92e;--brown:#6e4b30;--ink:#2f2219;--red:#8c2b22;--muted:#7d6a59;--rule:#d6c6aa;
+  --tabh:50px;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#1e1712;--paper-2:#2a2019;--film:#e8b443;--brown:#c19670;--ink:#efe5d3;--red:#d8604b;--muted:#a8927b;--rule:#3d2f24;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1e1712;--paper-2:#2a2019;--film:#e8b443;--brown:#c19670;--ink:#efe5d3;--red:#d8604b;--muted:#a8927b;--rule:#3d2f24;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:calc(var(--tabh) + 56px)}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body)}
+button{font:inherit;color:inherit}
+a{color:var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+.tabbar{position:sticky;top:0;z-index:2000;background:#2f2219;color:#f4ede0;padding-top:env(safe-area-inset-top,0px)}
+.tabbar-in{height:var(--tabh);display:flex;align-items:center;gap:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{font-family:var(--f-display);font-weight:900;letter-spacing:.08em;font-size:16px;white-space:nowrap}
+.tabs{display:flex;gap:4px;margin-left:auto}
+.tab{background:none;border:1px solid transparent;color:#f4ede0;padding:5px 14px;font-size:14px;cursor:pointer;white-space:nowrap}
+.tab:hover{border-color:rgba(244,237,224,.35)}
+.tab[aria-selected="true"]{background:#e0a92e;color:#2f2219;border-color:#e0a92e}
+.tab:focus-visible{outline-color:#e0a92e}
+@media (max-width:420px){.brand{font-size:14px}.tab{padding:5px 10px}}
+
+#view-map{height:calc(100dvh - var(--tabh) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+@media (max-width:820px){#view-map{height:auto}}
+#view-hb{
+  --paper:#f4ede0;      
+  --paper-2:#ebe1cd;
+  --film:#e0a92e;       
+  --brown:#6e4b30;      
+  --ink:#2f2219;
+  --red:#8c2b22;        
+  --muted:#7d6a59;
+  --rule:#d6c6aa;
+  --land:#e6dcc7;
+  --block:#d8c8aa;
+  --road:#fbf7ee;
+  --road-edge:#c4ae8a;
+  --on-film:#2f2219;
+  --on-red:#f4ede0;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-hand:"LXGW WenKai TC","Kaiti TC","DFKai-SB",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #view-hb{
+  --paper:#1e1712;--paper-2:#2a2019;--film:#e8b443;--brown:#c19670;--ink:#efe5d3;--red:#d8604b;--muted:#a8927b;--rule:#3d2f24;
+  --land:#231b15;--block:#33271e;--road:#4a3a2d;--road-edge:#5b4836;--on-film:#1e1712;--on-red:#1e1712;color-scheme:dark}}
+:root[data-theme="dark"] #view-hb{
+  --paper:#1e1712;--paper-2:#2a2019;--film:#e8b443;--brown:#c19670;--ink:#efe5d3;--red:#d8604b;--muted:#a8927b;--rule:#3d2f24;
+  --land:#231b15;--block:#33271e;--road:#4a3a2d;--road-edge:#5b4836;--on-film:#1e1712;--on-red:#1e1712;color-scheme:dark}
+#view-hb{
+.wrap{max-width:820px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+.cover{border-bottom:1px solid var(--rule);background:var(--paper-2)}
+.cover .wrap{padding-block:44px 36px;display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0}
+.cover h1{font-family:var(--f-display);font-weight:900;font-size:clamp(30px,6vw,46px);line-height:1.2;margin:0;letter-spacing:.06em;text-wrap:balance}
+.cover .sub{margin:0;font-size:17px;max-width:36em}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13.5px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.maplink{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:var(--ink);color:var(--paper);text-decoration:none;padding:8px 14px;font-size:14px;font-weight:500}
+.maplink:hover{background:var(--red);color:var(--on-red)}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--paper);border-bottom:1px solid var(--rule)}
+.toc .wrap{display:flex;gap:4px;overflow-x:auto;padding-block:8px;scrollbar-width:none}
+.toc a{flex:none;text-decoration:none;color:var(--ink);font-size:14px;padding:4px 10px;border:1px solid transparent}
+.toc a:hover{border-color:var(--rule)}
+.toc a.on{background:var(--ink);color:var(--paper)}
+main .wrap{display:flex;flex-direction:column;gap:56px;padding-block:44px 80px}
+section{display:flex;flex-direction:column;gap:18px;min-width:0}
+h2{font-family:var(--f-display);font-weight:900;font-size:27px;line-height:1.35;margin:0;text-wrap:balance;display:flex;align-items:baseline;gap:12px}
+h2 .no{font-family:var(--f-mono);font-size:13px;font-weight:500;color:var(--red);letter-spacing:.08em}
+h3{font-family:var(--f-display);font-weight:600;font-size:18px;margin:0}
+h4{font-size:13px;letter-spacing:.12em;color:var(--muted);margin:0;font-weight:500}
+p{margin:0}
+ul,ol{margin:0;padding-left:1.25em}
+li+li{margin-top:4px}
+.pill{display:inline-block;font-size:12px;line-height:1.5;padding:1px 8px;border:1px solid var(--rule);white-space:nowrap}
+.pill.warn{border-color:color-mix(in srgb,var(--red) 55%,transparent);color:var(--red)}
+.pill.todo{background:var(--film);color:var(--on-film);border-color:var(--film)}
+.pill.ok{border-color:var(--brown);color:var(--brown)}
+.q{color:var(--red);font-weight:700}
+.reasons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.reasons div{border-top:2px solid var(--ink);padding-top:10px;min-width:0}
+.reasons b{display:block;font-family:var(--f-display);font-size:16px;margin-bottom:4px}
+@media (max-width:620px){.reasons{grid-template-columns:minmax(0,1fr)}}
+.tbl{overflow-x:auto;border:1px solid var(--rule)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--rule)}
+th{font-weight:500;color:var(--muted);font-size:12.5px;letter-spacing:.06em;background:var(--paper-2)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+.mini{width:100%;max-width:100%;height:auto;display:block;background:var(--land);border:1px solid var(--rule)}
+.mm-bld path{fill:var(--block);stroke:none}
+.mm-road path{fill:none;stroke:var(--road);stroke-linecap:round;stroke-linejoin:round}
+.mm-minor path{stroke-width:6}
+.mm-mid path{stroke-width:9}
+.mm-major path{stroke-width:15}
+.mm-route{fill:none;stroke:var(--red);stroke-width:5;stroke-dasharray:2 14;stroke-linecap:round}
+.mm-route.ext{opacity:.45}
+.mm-stop rect{fill:var(--red)}
+.mm-stop.ext rect{fill:var(--paper);stroke:var(--red);stroke-width:3;stroke-dasharray:8 5}
+.mm-stop text{font-family:var(--f-display);font-weight:900;font-size:34px;fill:var(--on-red);text-anchor:middle;dominant-baseline:central}
+.mm-stop.ext text{fill:var(--red)}
+.mm-label{font-family:var(--f-body);font-size:24px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--land);stroke-width:8px;stroke-linejoin:round}
+figcaption{font-size:13px;color:var(--muted)}
+.stop{border:1px solid var(--rule);background:var(--paper);display:flex;flex-direction:column}
+.stop-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;padding:18px 20px;border-bottom:1px solid var(--rule);background:var(--paper-2)}
+.letter{width:48px;height:48px;display:grid;place-items:center;background:var(--red);color:var(--on-red);font-family:var(--f-display);font-weight:900;font-size:24px;transform:rotate(-4deg);box-shadow:3px 3px 0 var(--ink)}
+.stop.ext .letter{background:transparent;color:var(--red);border:2px dashed var(--red);box-shadow:none}
+.stop-head h3{font-size:22px;font-weight:900;line-height:1.3}
+.stop-head .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.stop-body{padding:20px;display:flex;flex-direction:column;gap:20px}
+dl.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;margin:0;font-size:14.5px}
+dl.facts dt{color:var(--muted);white-space:nowrap}
+dl.facts dd{margin:0;min-width:0}
+.block{display:flex;flex-direction:column;gap:8px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:620px){.two{grid-template-columns:minmax(0,1fr)}}
+.copy-card{position:relative;background:var(--paper-2);padding:16px 18px 14px;border-left:3px solid var(--film);display:flex;flex-direction:column;gap:6px}
+.copy-card.label{border-left-color:var(--red)}
+.copy-card .txt{font-family:var(--f-hand);font-size:19px;line-height:1.75;white-space:pre-line}
+.copy-card .sign{text-align:right;font-family:var(--f-hand);color:var(--muted);font-size:15px}
+.copy-card .card-title{font-family:var(--f-display);font-weight:900;font-size:16px}
+.cp{align-self:flex-end;background:none;border:1px solid var(--rule);font-size:12.5px;padding:2px 10px;cursor:pointer;color:var(--muted)}
+.cp:hover{border-color:var(--ink);color:var(--ink)}
+.cp.done{border-color:var(--brown);color:var(--brown)}
+.blank{background:var(--film);color:var(--on-film);padding:0 4px;font-family:var(--f-body);font-size:.8em}
+.callout{border:1px solid color-mix(in srgb,var(--red) 45%,transparent);padding:12px 14px;font-size:14.5px;display:flex;flex-direction:column;gap:4px}
+.callout b{color:var(--red)}
+.decision{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;border-top:1px dashed var(--rule);padding-top:14px}
+.decision .n{font-family:var(--f-mono);color:var(--red);font-size:14px;padding-top:2px}
+.decision > div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rec{font-size:14.5px;background:var(--paper-2);padding:8px 12px}
+.rec b{color:var(--red)}
+.timeline{list-style:none;padding:0;display:flex;flex-direction:column}
+.timeline li{display:grid;grid-template-columns:90px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid var(--rule);margin:0}
+.timeline .wk{font-family:var(--f-mono);font-size:13px;color:var(--red);padding-top:3px}
+.timeline b{display:block;font-family:var(--f-display)}
+.timeline span{font-size:14.5px}
+.checks{list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 20px}
+.checks li{margin:0;padding-left:26px;position:relative;font-size:15px}
+.checks li::before{content:"";position:absolute;left:0;top:6px;width:14px;height:14px;border:1.5px solid var(--brown)}
+@media (max-width:620px){.checks{grid-template-columns:minmax(0,1fr)}}
+.sources{font-size:13.5px;columns:2;column-gap:28px}
+.sources li{break-inside:avoid}
+@media (max-width:620px){.sources{columns:1}}
+footer{border-top:1px solid var(--rule);font-size:12.5px;color:var(--muted)}
+footer .wrap{padding-block:20px 32px}
+}
+#view-map{
+  --paper:#f4ede0;       
+  --paper-2:#ebe1cd;
+  --film:#e0a92e;        
+  --brown:#6e4b30;       
+  --ink:#2f2219;
+  --red:#8c2b22;         
+  --muted:#857160;
+  --rule:#d6c6aa;
+  --land:#ebe2cf;
+  --block:#ddcdb0;
+  --block-edge:#cbb894;
+  --road:#fbf7ee;
+  --road-edge:#c8b391;
+  --park:#d6d8b0;
+  --water:#c3cfca;
+  --on-film:#2f2219;
+  --on-brown:#f4ede0;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-hand:"LXGW WenKai TC","Kaiti TC","DFKai-SB",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #view-map{
+  --paper:#1e1712;--paper-2:#2a2019;--film:#e8b443;--brown:#b88a62;--ink:#efe5d3;--red:#d0533f;--muted:#a8927b;--rule:#3d2f24;
+  --land:#231b15;--block:#33271e;--block-edge:#45362a;--road:#4a3a2d;--road-edge:#5b4836;--park:#2c3122;--water:#1f2a29;
+  --on-film:#1e1712;--on-brown:#1e1712;color-scheme:dark}}
+:root[data-theme="dark"] #view-map{
+  --paper:#1e1712;--paper-2:#2a2019;--film:#e8b443;--brown:#b88a62;--ink:#efe5d3;--red:#d0533f;--muted:#a8927b;--rule:#3d2f24;
+  --land:#231b15;--block:#33271e;--block-edge:#45362a;--road:#4a3a2d;--road-edge:#5b4836;--park:#2c3122;--water:#1f2a29;
+  --on-film:#1e1712;--on-brown:#1e1712;color-scheme:dark}
+#view-map{
+.app{display:grid;grid-template-columns:minmax(0,1fr) 380px;height:100%}
+.mapwrap{position:relative;min-width:0;background:var(--land)}
+#map{position:absolute;inset:0;background:var(--land)}
+.side{border-left:1px solid var(--rule);background:var(--paper);overflow-y:auto;min-width:0}
+.side-inner{padding-block:24px 40px;padding-left:max(22px,env(safe-area-inset-left,0px));padding-right:max(22px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.title-tag{position:absolute;z-index:1000;top:calc(14px + env(safe-area-inset-top,0px));left:max(14px,env(safe-area-inset-left,0px));background:var(--paper);border:1px solid var(--rule);padding:10px 14px 9px;box-shadow:3px 3px 0 var(--brown);max-width:calc(100% - 28px)}
+.title-tag h1{font-family:var(--f-display);font-weight:900;font-size:22px;line-height:1.2;margin:0;letter-spacing:.06em;text-wrap:balance}
+.title-tag p{margin:2px 0 0;font-size:12px;color:var(--muted);letter-spacing:.08em}
+.proto{display:inline-block;margin-top:6px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;background:var(--film);color:var(--on-film);padding:1px 7px}
+.zoom{position:absolute;z-index:1000;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;border:1px solid var(--rule);background:var(--paper)}
+.zoom button{width:38px;height:38px;border:0;background:none;font-size:20px;cursor:pointer}
+.zoom button+button{border-top:1px solid var(--rule)}
+.zoom button:hover{background:var(--paper-2)}
+.credit{position:absolute;z-index:1000;left:max(10px,env(safe-area-inset-left,0px));bottom:calc(6px + env(safe-area-inset-bottom,0px));font-size:10.5px;color:var(--muted);background:color-mix(in srgb,var(--paper) 80%,transparent);padding:1px 6px}
+.credit a{color:inherit}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.side h2{font-family:var(--f-display);font-weight:900;font-size:24px;line-height:1.3;margin:0;text-wrap:balance}
+.side h3{font-family:var(--f-display);font-weight:600;font-size:16px;margin:0 0 8px}
+.side p{margin:0}
+.lede{color:var(--ink);max-width:36em}
+.sect{display:flex;flex-direction:column;gap:10px;border-top:1px dashed var(--rule);padding-top:18px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--rule);background:transparent;padding:4px 11px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip .dot{width:10px;height:10px;display:inline-block;border:1px solid var(--brown)}
+.dot.people{background:var(--film)}
+.dot.arch{background:var(--brown)}
+.stops{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.stops button{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule);padding:10px 0;display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;cursor:pointer}
+.stops button:hover .stop-name{color:var(--red)}
+.stop-letter{width:30px;height:30px;display:grid;place-items:center;font-family:var(--f-display);font-weight:900;background:var(--red);color:var(--paper);font-size:15px}
+.stop-letter.ext{background:transparent;color:var(--red);border:1.5px dashed var(--red)}
+.stop-name{font-weight:700;display:block;line-height:1.3}
+.stop-role{font-size:12.5px;color:var(--muted)}
+.back{align-self:flex-start;background:none;border:0;padding:0;font-size:13px;color:var(--muted);cursor:pointer}
+.back:hover{color:var(--red)}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:13.5px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;min-width:0}
+.note{font-family:var(--f-hand);font-size:18px;line-height:1.7;background:var(--paper-2);padding:14px 16px;border-left:3px solid var(--film);white-space:pre-line}
+.note-sign{display:block;text-align:right;font-size:14px;color:var(--muted);margin-top:4px}
+.warn{font-size:13px;color:var(--red);border:1px solid color-mix(in srgb,var(--red) 40%,transparent);padding:8px 11px}
+.side ul.plain{margin:0;padding-left:1.1em}
+.side ul.plain li+li{margin-top:4px}
+.film{background:#191411;padding:14px 12px;position:relative}
+.film::before,.film::after{content:"";position:absolute;left:8px;right:8px;height:6px;background:repeating-linear-gradient(90deg,#e9dfcc 0 8px,transparent 8px 18px);opacity:.75}
+.film::before{top:4px}
+.film::after{bottom:4px}
+.frame{aspect-ratio:3/2;max-width:100%;position:relative;overflow:hidden;display:grid;place-items:center}
+.frame.people{background:radial-gradient(120% 90% at 30% 30%,#e9c46a 0,#b0793b 55%,#4a3022 100%)}
+.frame.arch{background:linear-gradient(160deg,#c9b08a 0,#8a6446 50%,#3b2a20 100%)}
+.frame span.ph{font-family:var(--f-hand);color:#f6eedd;font-size:17px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.stamp{position:absolute;right:10px;bottom:8px;font-family:var(--f-mono);font-size:13px;color:#ff8a3d;letter-spacing:.05em;text-shadow:0 0 4px rgba(255,120,40,.6)}
+.code{font-family:var(--f-mono);font-size:13px;background:var(--film);color:var(--on-film);padding:1px 8px}
+.quote{font-family:var(--f-hand);font-size:21px;line-height:1.6}
+.sample{font-size:12px;color:var(--muted)}
+.leaflet-pane,.leaflet-marker-icon,.leaflet-pane>svg,.leaflet-layer{position:absolute;left:0;top:0}
+.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent;font-family:var(--f-body)}
+.leaflet-container.leaflet-touch-zoom{touch-action:pan-x pan-y}
+.leaflet-container.leaflet-touch-drag,.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{touch-action:none}
+.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}
+.leaflet-pane{z-index:400}
+.leaflet-overlay-pane{z-index:400}
+.leaflet-marker-pane{z-index:600}
+.leaflet-map-pane svg{z-index:200}
+.leaflet-zoom-animated{transform-origin:0 0}
+.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}
+.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}
+.leaflet-marker-icon,.leaflet-pane>svg path{pointer-events:none}
+.leaflet-marker-icon.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive{pointer-events:auto;cursor:pointer}
+.leaflet-grab{cursor:grab}
+.leaflet-dragging .leaflet-grab{cursor:grabbing}
+.leaflet-marker-icon{display:block}
+@media (prefers-reduced-motion:reduce){.leaflet-zoom-anim .leaflet-zoom-animated{transition:none}}
+#map{--s:1}
+.r-bld{fill:var(--block);stroke:var(--block-edge);stroke-width:.6px}
+.r-park{fill:var(--park);stroke:none}
+.r-water{fill:none;stroke:var(--water);stroke-width:calc(6px * var(--s))}
+.r-case{fill:none;stroke:var(--road-edge);stroke-linecap:round;stroke-linejoin:round}
+.r-fill{fill:none;stroke:var(--road);stroke-linecap:round;stroke-linejoin:round}
+.r-case.major{stroke-width:calc(17px * var(--s))}
+.r-fill.major{stroke-width:calc(14px * var(--s))}
+.r-case.mid{stroke-width:calc(11px * var(--s))}
+.r-fill.mid{stroke-width:calc(8.5px * var(--s))}
+.r-case.minor{stroke-width:calc(7.5px * var(--s))}
+.r-fill.minor{stroke-width:calc(5.5px * var(--s))}
+.r-case.alley{stroke-width:calc(4px * var(--s))}
+.r-fill.alley{stroke-width:calc(2.6px * var(--s))}
+.r-rail{fill:none;stroke:var(--brown);stroke-width:2px;stroke-dasharray:6 4}
+.route{fill:none;stroke:var(--red);stroke-width:2.5px;stroke-dasharray:2 7;stroke-linecap:round}
+.route.ext{opacity:.55}
+.campath{fill:none;stroke:var(--ink);stroke-width:2px;stroke-dasharray:8 5}
+.street{font-size:11px;color:var(--brown);white-space:nowrap;letter-spacing:.12em;text-shadow:0 0 3px var(--land),0 0 3px var(--land),0 0 3px var(--land)}
+.street-wrap{display:flex;align-items:center;justify-content:center;width:0;height:0}
+#map.far .street-wrap.minor{display:none}
+#map.veryfar .street-wrap{display:none}
+.stop-pin{display:flex;flex-direction:column;align-items:center;gap:3px}
+.stop-pin b{width:30px;height:30px;display:grid;place-items:center;background:var(--red);color:#f4ede0;font-family:var(--f-display);font-weight:900;font-size:16px;box-shadow:2px 2px 0 var(--ink);transform:rotate(-4deg)}
+.stop-pin.ext b{background:var(--paper);color:var(--red);border:1.5px dashed var(--red);box-shadow:none}
+.stop-pin i{font-style:normal;font-size:12px;font-weight:700;background:var(--paper);border:1px solid var(--rule);padding:0 6px;white-space:nowrap}
+.stop-pin.on b{outline:3px solid var(--film);outline-offset:2px}
+#map.veryfar .stop-pin i{display:none}
+.ph-pin{width:26px;height:20px;display:grid;place-items:center;font-family:var(--f-mono);font-size:10.5px;border:1.5px solid var(--ink);transition:transform .15s}
+.ph-pin.people{background:var(--film);color:var(--on-film)}
+.ph-pin.arch{background:var(--brown);color:var(--on-brown)}
+.ph-pin.on{transform:scale(1.35);outline:2.5px solid var(--red);outline-offset:1px}
+.ph-pin.dim{opacity:.18}
+@media (max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:62% auto;height:auto;min-height:100%}
+  .mapwrap{height:62vh;min-height:360px}
+  .side{border-left:0;border-top:1px solid var(--rule);overflow:visible}
+  .title-tag h1{font-size:19px}
+}
+}
+#view-hb .toc{top:calc(var(--tabh) + env(safe-area-inset-top,0px))}
+#view-map .title-tag{top:14px}
+</style>
+</head>
+<body>
+
+
+<header class="tabbar"><div class="tabbar-in">
+  <span class="brand">尚未完成的地圖</span>
+  <div class="tabs" role="tablist" aria-label="切換頁面">
+    <button class="tab" role="tab" id="tab-hb" aria-controls="view-hb" data-goto="hb">資料手冊</button>
+    <button class="tab" role="tab" id="tab-map" aria-controls="view-map" data-goto="map">影像地圖</button>
+  </div>
+</div></header>
+<div id="view-hb" class="view" role="tabpanel" aria-labelledby="tab-hb">
+
+
+<header class="cover">
+  <div class="wrap">
+    <p class="eyebrow">組員資料手冊 · Field Handbook</p>
+    <h1>尚未完成的地圖</h1>
+    <p class="sub">萬華糖廍周邊的相機接力計畫。這份手冊整理了交接點資料、可直接使用的文案、初步分析與執行步驟，給組員分工時查閱。</p>
+    <div class="meta">
+      <span>測試街區　<b>糖廍文化園區周邊</b></span>
+      <span>交接點　<b>A–D 四點＋E 延伸</b></span>
+      <span>整理日期　<b>2026-11-02</b></span>
+    </div>
+    <div class="legend"><span class="pill warn">⚠️ 待確認</span>網路資料互相矛盾或查不到，出發前要實地或電話確認。<span class="pill todo">待填</span>等合作店家確定後補上。</div>
+    <a class="maplink" href="#map" data-goto="map">切換到影像地圖 →</a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="目錄">
+  <div class="wrap">
+    <a href="#why">街區</a><a href="#stops">交接點</a><a href="#copy">共用文案</a><a href="#analysis">初步分析</a><a href="#plan">執行規劃</a><a href="#todo">待確認</a><a href="#refs">參考資料</a>
+  </div>
+</nav>
+
+<main><div class="wrap">
+
+<section id="why">
+  <h2><span class="no">01</span>為什麼選糖廍周邊</h2>
+  <div class="reasons">
+    <div><b>呼應「甘蔗祭」</b>清代大理街就有私人糖廍，日治時期設立北台灣第一座現代化製糖廠。從甘蔗出發，主題有根據。</div>
+    <div><b>一條街三個時代</b>製糖（清～日治）、成衣批發（1950–80 年代）、整建住宅與日常生活（1970 年代至今），正好對應兩個拍攝主題。</div>
+    <div><b>尺度剛好</b>據點之間步行 5–10 分鐘，整圈約 1.5–2 公里。參與者拿到相機後，半小時到一小時就能拍完並送到下一站。</div>
+    <div><b>觀光客比龍山寺少</b>比較容易拍到平凡的日常，符合企劃「不預先定義值得被看見的樣貌」。</div>
+  </div>
+  <figure>
+    <svg class="mini" viewBox="-480 -420 1120 720" role="img" aria-label="糖廍周邊交接點位置示意圖"><g class="mm-bld"><path d="M406 79 L406 79Z"/><path d="M249 77 L249 77Z"/><path d="M397 286 L397 286Z"/><path d="M272 -336 L272 -336Z"/><path d="M296 20 L296 20Z"/><path d="M279 -377 L279 -377Z"/><path d="M273 -377 L273 -377Z"/><path d="M279 -370 L279 -370Z"/><path d="M478 -344 L478 -344Z"/><path d="M269 -115 L269 -115Z"/><path d="M432 -103 L432 -103Z"/><path d="M331 -180 L331 -180Z"/><path d="M75 307 L75 307Z"/><path d="M-125 57 L-125 57Z"/><path d="M-274 59 L-274 59Z"/><path d="M-232 51 L-232 51Z"/><path d="M-201 67 L-201 67Z"/><path d="M665 350 L665 350Z"/><path d="M66 -176 L66 -176Z"/><path d="M5 168 L5 168Z"/><path d="M125 223 L125 223Z"/><path d="M118 153 L118 153Z"/><path d="M394 297 L394 297Z"/><path d="M367 284 L367 284Z"/><path d="M492 336 L492 336Z"/><path d="M414 264 L414 264Z"/><path d="M365 251 L365 251Z"/><path d="M267 303 L267 303Z"/><path d="M234 304 L234 304Z"/><path d="M213 303 L213 303Z"/><path d="M440 297 L440 297Z"/><path d="M347 271 L347 271Z"/><path d="M571 321 L571 321Z"/><path d="M493 190 L493 190Z"/><path d="M229 172 L229 172Z"/><path d="M539 17 L539 17Z"/><path d="M334 -110 L334 -110Z"/><path d="M447 -424 L447 -424Z"/><path d="M-97 -344 L-97 -344Z"/><path d="M70 -291 L70 -291Z"/><path d="M90 -318 L90 -318Z"/><path d="M-212 -119 L-212 -119Z"/><path d="M-32 32 L-32 32Z"/><path d="M-44 96 L-44 96Z"/><path d="M-109 -72 L-109 -72Z"/><path d="M-76 -50 L-76 -50Z"/><path d="M-122 -123 L-122 -123Z"/><path d="M314 -330 L314 -330Z"/><path d="M262 -337 L262 -337Z"/><path d="M472 194 L472 194Z"/><path d="M114 118 L114 118Z"/><path d="M-439 270 L-439 270Z"/><path d="M-462 273 L-462 273Z"/><path d="M-502 -76 L-502 -76Z"/><path d="M-489 -80 L-489 -80Z"/><path d="M-177 -67 L-177 -67Z"/><path d="M-188 -106 L-188 -106Z"/><path d="M487 -185 L487 -185Z"/><path d="M380 -329 L380 -329Z"/><path d="M110 -271 L110 -271Z"/><path d="M-162 -243 L-162 -243Z"/><path d="M-163 -243 L-163 -243Z"/><path d="M-248 -104 L-248 -104Z"/><path d="M-227 -169 L-227 -169Z"/><path d="M246 -61 L246 -61Z"/><path d="M223 65 L223 65Z"/><path d="M304 34 L304 34Z"/><path d="M136 60 L136 60Z"/><path d="M281 283 L281 283Z"/><path d="M283 292 L283 292Z"/><path d="M-125 -269 L-125 -269Z"/><path d="M469 -282 L469 -282Z"/><path d="M481 -278 L481 -278Z"/><path d="M462 -271 L462 -271Z"/><path d="M482 -281 L482 -281Z"/><path d="M488 -281 L488 -281Z"/><path d="M496 -279 L496 -279Z"/><path d="M498 -279 L498 -279Z"/><path d="M509 -279 L509 -279Z"/><path d="M522 -279 L522 -279Z"/><path d="M534 -279 L534 -279Z"/><path d="M520 -263 L520 -263Z"/><path d="M516 -249 L516 -249Z"/><path d="M503 -257 L503 -257Z"/><path d="M503 -257 L503 -257Z"/><path d="M501 -233 L501 -233Z"/><path d="M496 -257 L496 -257Z"/><path d="M495 -247 L495 -247Z"/><path d="M475 -258 L475 -258Z"/><path d="M469 -246 L469 -246Z"/><path d="M464 -257 L464 -257Z"/><path d="M471 -241 L471 -241Z"/><path d="M464 -257 L464 -257Z"/><path d="M465 -228 L465 -228Z"/><path d="M448 -217 L448 -217Z"/><path d="M446 -208 L446 -208Z"/><path d="M444 -192 L444 -192Z"/><path d="M442 -181 L442 -181Z"/><path d="M455 -173 L455 -173Z"/><path d="M460 -170 L460 -170Z"/><path d="M466 -186 L466 -186Z"/><path d="M480 -186 L480 -186Z"/><path d="M472 -208 L472 -208Z"/><path d="M488 -228 L488 -228Z"/><path d="M518 -227 L518 -227Z"/><path d="M516 -213 L516 -213Z"/><path d="M514 -203 L514 -203Z"/><path d="M522 -191 L522 -191Z"/><path d="M528 -183 L528 -183Z"/><path d="M483 -176 L483 -176Z"/><path d="M483 -163 L483 -163Z"/><path d="M509 -161 L509 -161Z"/><path d="M14 341 L14 341Z"/><path d="M109 337 L109 337Z"/><path d="M315 -92 L315 -92Z"/><path d="M193 42 L193 42Z"/><path d="M342 158 L342 158Z"/><path d="M331 158 L331 158Z"/><path d="M417 168 L417 168Z"/><path d="M397 144 L397 144Z"/><path d="M394 143 L394 143Z"/><path d="M402 129 L402 129Z"/><path d="M386 132 L386 132Z"/><path d="M378 138 L378 138Z"/><path d="M363 148 L363 148Z"/><path d="M367 155 L367 155Z"/><path d="M364 159 L364 159Z"/><path d="M433 -17 L433 -17Z"/><path d="M427 -17 L427 -17Z"/><path d="M421 -35 L421 -35Z"/><path d="M380 -19 L380 -19Z"/><path d="M373 -36 L373 -36Z"/><path d="M535 -117 L535 -117Z"/><path d="M99 130 L99 130Z"/><path d="M-101 -195 L-101 -195Z"/><path d="M-39 -170 L-39 -170Z"/><path d="M613 -212 L613 -212Z"/><path d="M464 -323 L464 -323Z"/><path d="M475 -336 L475 -336Z"/><path d="M538 -328 L538 -328Z"/><path d="M648 -309 L648 -309Z"/><path d="M412 -169 L412 -169Z"/><path d="M412 -105 L412 -105Z"/><path d="M400 -119 L400 -119Z"/><path d="M678 -458 L678 -458Z"/><path d="M-438 35 L-438 35Z"/><path d="M-504 56 L-504 56Z"/><path d="M-431 26 L-431 26Z"/><path d="M-495 107 L-495 107Z"/><path d="M-443 0 L-443 0Z"/><path d="M-467 51 L-467 51Z"/><path d="M-486 96 L-486 96Z"/><path d="M-507 38 L-507 38Z"/><path d="M-476 23 L-476 23Z"/><path d="M-479 44 L-479 44Z"/><path d="M383 -285 L383 -285Z"/><path d="M-490 69 L-490 69Z"/><path d="M388 -285 L388 -285Z"/><path d="M-487 37 L-487 37Z"/><path d="M-476 17 L-476 17Z"/><path d="M-468 69 L-468 69Z"/><path d="M399 -284 L399 -284Z"/><path d="M-463 30 L-463 30Z"/><path d="M-449 7 L-449 7Z"/><path d="M423 -283 L423 -283Z"/><path d="M437 -282 L437 -282Z"/><path d="M366 -285 L366 -285Z"/><path d="M310 -40 L310 -40Z"/><path d="M301 -40 L301 -40Z"/><path d="M293 -40 L293 -40Z"/><path d="M221 -29 L221 -29Z"/><path d="M216 -28 L216 -28Z"/><path d="M211 -28 L211 -28Z"/><path d="M204 -27 L204 -27Z"/><path d="M113 -12 L113 -12Z"/><path d="M108 -11 L108 -11Z"/><path d="M103 -10 L103 -10Z"/><path d="M99 -9 L99 -9Z"/><path d="M94 -8 L94 -8Z"/><path d="M89 -6 L89 -6Z"/><path d="M84 -5 L84 -5Z"/><path d="M91 18 L91 18Z"/><path d="M75 -3 L75 -3Z"/><path d="M70 -1 L70 -1Z"/><path d="M65 0 L65 0Z"/><path d="M268 -404 L268 -404Z"/><path d="M283 -404 L283 -404Z"/><path d="M326 -351 L326 -351Z"/><path d="M325 -359 L325 -359Z"/><path d="M324 -364 L324 -364Z"/><path d="M324 -370 L324 -370Z"/><path d="M321 -376 L321 -376Z"/><path d="M321 -382 L321 -382Z"/><path d="M425 -314 L425 -314Z"/><path d="M423 -296 L423 -296Z"/><path d="M434 -296 L434 -296Z"/><path d="M410 -259 L410 -259Z"/><path d="M404 -260 L404 -260Z"/><path d="M399 -260 L399 -260Z"/><path d="M393 -260 L393 -260Z"/><path d="M388 -261 L388 -261Z"/><path d="M382 -261 L382 -261Z"/><path d="M374 -247 L374 -247Z"/><path d="M374 -252 L374 -252Z"/><path d="M374 -258 L374 -258Z"/><path d="M382 -238 L382 -238Z"/><path d="M-473 59 L-473 59Z"/><path d="M-495 24 L-495 24Z"/><path d="M-522 56 L-522 56Z"/><path d="M374 -241 L374 -241Z"/><path d="M26 273 L26 273Z"/><path d="M536 110 L536 110Z"/><path d="M208 -394 L208 -394Z"/><path d="M231 -397 L231 -397Z"/><path d="M52 -369 L52 -369Z"/><path d="M34 -370 L34 -370Z"/><path d="M45 -466 L45 -466Z"/><path d="M-269 268 L-269 268Z"/><path d="M-315 235 L-315 235Z"/><path d="M53 40 L53 40Z"/><path d="M291 -452 L291 -452Z"/><path d="M446 -65 L446 -65Z"/><path d="M580 282 L580 282Z"/><path d="M585 282 L585 282Z"/><path d="M581 297 L581 297Z"/><path d="M577 297 L577 297Z"/><path d="M572 297 L572 297Z"/><path d="M567 284 L567 284Z"/><path d="M609 -77 L609 -77Z"/><path d="M602 -115 L602 -115Z"/><path d="M-205 -94 L-205 -94Z"/><path d="M-257 -115 L-257 -115Z"/><path d="M-254 -87 L-254 -87Z"/><path d="M-382 -115 L-382 -115Z"/><path d="M-242 -207 L-242 -207Z"/><path d="M-452 -168 L-452 -168Z"/><path d="M104 14 L104 14Z"/><path d="M100 15 L100 15Z"/><path d="M95 16 L95 16Z"/><path d="M285 256 L285 256Z"/><path d="M432 -104 L432 -104Z"/><path d="M98 -170 L98 -170Z"/><path d="M129 -156 L129 -156Z"/><path d="M149 -166 L149 -166Z"/><path d="M170 -155 L170 -155Z"/><path d="M208 -154 L208 -154Z"/><path d="M370 -106 L370 -106Z"/><path d="M392 -119 L392 -119Z"/><path d="M392 -119 L392 -119Z"/><path d="M385 -107 L385 -107Z"/><path d="M380 -107 L380 -107Z"/><path d="M370 -106 L370 -106Z"/><path d="M325 -108 L325 -108Z"/><path d="M340 -108 L340 -108Z"/><path d="M387 -49 L387 -49Z"/><path d="M383 -58 L383 -58Z"/><path d="M395 -80 L395 -80Z"/><path d="M401 -79 L401 -79Z"/><path d="M349 -152 L349 -152Z"/><path d="M245 -107 L245 -107Z"/><path d="M220 -200 L220 -200Z"/><path d="M209 -163 L209 -163Z"/><path d="M209 -155 L209 -155Z"/><path d="M205 -222 L205 -222Z"/><path d="M359 -263 L359 -263Z"/><path d="M351 -263 L351 -263Z"/><path d="M369 -298 L369 -298Z"/><path d="M337 -298 L337 -298Z"/><path d="M156 -48 L156 -48Z"/><path d="M159 -71 L159 -71Z"/><path d="M190 -99 L190 -99Z"/><path d="M166 -79 L166 -79Z"/><path d="M185 -115 L185 -115Z"/><path d="M196 -114 L196 -114Z"/><path d="M81 -250 L81 -250Z"/><path d="M67 -224 L67 -224Z"/><path d="M29 -196 L29 -196Z"/><path d="M67 -208 L67 -208Z"/><path d="M-11 -160 L-11 -160Z"/><path d="M9 -180 L9 -180Z"/><path d="M39 -181 L39 -181Z"/><path d="M33 -196 L33 -196Z"/><path d="M30 -233 L30 -233Z"/><path d="M69 -207 L69 -207Z"/><path d="M71 -117 L71 -117Z"/><path d="M7 -313 L7 -313Z"/><path d="M-64 -335 L-64 -335Z"/><path d="M56 -245 L56 -245Z"/><path d="M76 -132 L76 -132Z"/><path d="M-57 -116 L-57 -116Z"/><path d="M-24 -112 L-24 -112Z"/><path d="M-13 -112 L-13 -112Z"/><path d="M-2 -112 L-2 -112Z"/><path d="M-2 -116 L-2 -116Z"/><path d="M-11 -272 L-11 -272Z"/><path d="M124 -157 L124 -157Z"/><path d="M120 -157 L120 -157Z"/><path d="M115 -157 L115 -157Z"/><path d="M111 -173 L111 -173Z"/><path d="M160 -129 L160 -129Z"/><path d="M174 -129 L174 -129Z"/><path d="M142 -130 L142 -130Z"/><path d="M159 -129 L159 -129Z"/><path d="M118 -131 L118 -131Z"/><path d="M103 -116 L103 -116Z"/><path d="M98 -115 L98 -115Z"/><path d="M130 -131 L130 -131Z"/><path d="M7 82 L7 82Z"/><path d="M30 75 L30 75Z"/><path d="M30 63 L30 63Z"/><path d="M46 58 L46 58Z"/><path d="M68 65 L68 65Z"/><path d="M165 54 L165 54Z"/><path d="M182 42 L182 42Z"/><path d="M169 7 L169 7Z"/><path d="M69 67 L69 67Z"/><path d="M-91 -42 L-91 -42Z"/><path d="M-222 132 L-222 132Z"/><path d="M-256 123 L-256 123Z"/><path d="M-299 115 L-299 115Z"/><path d="M-301 131 L-301 131Z"/><path d="M-243 153 L-243 153Z"/><path d="M-306 155 L-306 155Z"/><path d="M-307 157 L-307 157Z"/><path d="M-262 165 L-262 165Z"/><path d="M-244 211 L-244 211Z"/><path d="M-244 209 L-244 209Z"/><path d="M-420 154 L-420 154Z"/><path d="M-359 -20 L-359 -20Z"/><path d="M-246 192 L-246 192Z"/><path d="M-286 224 L-286 224Z"/><path d="M-282 118 L-282 118Z"/><path d="M-221 129 L-221 129Z"/><path d="M-238 126 L-238 126Z"/><path d="M-225 145 L-225 145Z"/><path d="M-267 137 L-267 137Z"/><path d="M-284 134 L-284 134Z"/><path d="M-272 161 L-272 161Z"/><path d="M-289 158 L-289 158Z"/><path d="M-226 156 L-226 156Z"/><path d="M-289 160 L-289 160Z"/><path d="M-228 171 L-228 171Z"/><path d="M-245 168 L-245 168Z"/><path d="M-299 40 L-299 40Z"/><path d="M-313 45 L-313 45Z"/><path d="M-314 28 L-314 28Z"/><path d="M-356 102 L-356 102Z"/><path d="M-343 107 L-343 107Z"/><path d="M-341 84 L-341 84Z"/><path d="M-328 92 L-328 92Z"/><path d="M-315 99 L-315 99Z"/><path d="M-321 104 L-321 104Z"/><path d="M-329 113 L-329 113Z"/><path d="M-376 126 L-376 126Z"/><path d="M-363 131 L-363 131Z"/><path d="M-349 137 L-349 137Z"/><path d="M-336 143 L-336 143Z"/><path d="M-323 148 L-323 148Z"/><path d="M-387 136 L-387 136Z"/><path d="M-375 142 L-375 142Z"/><path d="M-362 147 L-362 147Z"/><path d="M-349 153 L-349 153Z"/><path d="M-337 158 L-337 158Z"/><path d="M-324 163 L-324 163Z"/><path d="M-355 179 L-355 179Z"/><path d="M-330 190 L-330 190Z"/><path d="M-343 184 L-343 184Z"/><path d="M-403 158 L-403 158Z"/><path d="M-390 164 L-390 164Z"/><path d="M-378 169 L-378 169Z"/><path d="M-341 189 L-341 189Z"/><path d="M-354 183 L-354 183Z"/><path d="M-367 177 L-367 177Z"/><path d="M-381 171 L-381 171Z"/><path d="M-394 166 L-394 166Z"/><path d="M-407 160 L-407 160Z"/><path d="M194 -39 L194 -39Z"/><path d="M171 2 L171 2Z"/><path d="M195 -22 L195 -22Z"/><path d="M248 -34 L248 -34Z"/><path d="M245 -107 L245 -107Z"/><path d="M245 -89 L245 -89Z"/><path d="M245 -88 L245 -88Z"/><path d="M233 -321 L233 -321Z"/><path d="M149 -20 L149 -20Z"/><path d="M150 -22 L150 -22Z"/><path d="M349 -176 L349 -176Z"/><path d="M298 159 L298 159Z"/><path d="M301 140 L301 140Z"/><path d="M346 139 L346 139Z"/><path d="M-222 285 L-222 285Z"/><path d="M437 -247 L437 -247Z"/><path d="M437 -247 L437 -247Z"/><path d="M438 -253 L438 -253Z"/><path d="M416 -260 L416 -260Z"/><path d="M409 -284 L409 -284Z"/><path d="M214 -422 L214 -422Z"/><path d="M675 -137 L675 -137Z"/><path d="M561 -87 L561 -87Z"/><path d="M589 -3 L589 -3Z"/><path d="M618 -31 L618 -31Z"/><path d="M-396 -36 L-396 -36Z"/><path d="M-418 -12 L-418 -12Z"/><path d="M-327 -200 L-327 -200Z"/><path d="M-247 -263 L-247 -263Z"/><path d="M-255 -254 L-255 -254Z"/><path d="M-220 -12 L-220 -12Z"/><path d="M-219 -12 L-219 -12Z"/><path d="M-203 -15 L-203 -15Z"/><path d="M-186 -18 L-186 -18Z"/><path d="M-171 -21 L-171 -21Z"/><path d="M-206 17 L-206 17Z"/><path d="M-186 14 L-186 14Z"/><path d="M-165 11 L-165 11Z"/><path d="M-163 27 L-163 27Z"/><path d="M-183 30 L-183 30Z"/><path d="M-204 33 L-204 33Z"/><path d="M421 156 L421 156Z"/><path d="M-379 -55 L-379 -55Z"/><path d="M-375 -133 L-375 -133Z"/><path d="M70 -426 L70 -426Z"/><path d="M35 -20 L35 -20Z"/><path d="M118 -77 L118 -77Z"/><path d="M93 -64 L93 -64Z"/><path d="M99 -59 L99 -59Z"/><path d="M-12 -39 L-12 -39Z"/><path d="M39 -44 L39 -44Z"/><path d="M65 -53 L65 -53Z"/><path d="M40 -85 L40 -85Z"/><path d="M54 -65 L54 -65Z"/><path d="M50 -2 L50 -2Z"/><path d="M70 19 L70 19Z"/><path d="M47 -20 L47 -20Z"/><path d="M53 46 L53 46Z"/><path d="M-138 194 L-138 194Z"/><path d="M300 -308 L300 -308Z"/><path d="M276 -171 L276 -171Z"/><path d="M-138 -33 L-138 -33Z"/><path d="M-120 -35 L-120 -35Z"/><path d="M-100 -39 L-100 -39Z"/><path d="M-110 -20 L-110 -20Z"/><path d="M-127 -17 L-127 -17Z"/><path d="M-145 -15 L-145 -15Z"/><path d="M-128 19 L-128 19Z"/><path d="M-85 62 L-85 62Z"/><path d="M-102 112 L-102 112Z"/><path d="M606 101 L606 101Z"/><path d="M-23 -414 L-23 -414Z"/><path d="M23 -454 L23 -454Z"/><path d="M338 327 L338 327Z"/><path d="M288 143 L288 143Z"/><path d="M591 -148 L591 -148Z"/><path d="M-20 -386 L-20 -386Z"/></g><g class="mm-road mm-minor"><path d="M-264 -422 L-270 -413 L-290 -388 L-324 -350 L-381 -282 L-431 -226 L-432 -223"/><path d="M-418 -312 L-488 -231 L-491 -223"/><path d="M-242 -372 L-202 -341 L-152 -305"/><path d="M-249 -287 L-212 -331"/><path d="M-210 -286 L-227 -266"/><path d="M-524 -225 L-527 -178"/><path d="M-323 -168 L-334 -171 L-527 -178 L-548 -178 L-553 -179 L-611 -181"/><path d="M-370 -172 L-370 -221 L-301 -302 L-288 -319 L-191 -431 L-151 -482 L-146 -491 L-147 -502 L-114 -524 L-102 -540"/><path d="M-438 -330 L-418 -312 L-381 -282 L-311 -219 L-293 -239 L-277 -255 L-264 -270 L-257 -276 L-243 -264"/><path d="M-355 -376 L-272 -305 L-249 -287 L-227 -266 L-202 -244"/><path d="M-272 -305 L-242 -341 L-222 -339 L-163 -290"/><path d="M-370 -221 L-432 -223 L-491 -223 L-559 -226 L-564 -230"/><path d="M58 -151 L59 -161 L59 -262 L62 -313 L61 -350 L64 -399 L67 -430 L67 -490 L66 -500"/><path d="M528 228 L523 185 L528 167 L533 128 L533 99 L532 98 L527 73"/><path d="M-333 219 L-320 174"/><path d="M-247 -65 L-253 -63 L-301 -2"/><path d="M-175 302 L-168 298 L-156 301 L-42 355"/><path d="M-718 -24 L-627 28 L-603 44 L-563 66 L-543 79 L-524 94 L-500 118 L-498 121"/><path d="M-498 121 L-470 149 L-442 170 L-333 219 L-244 238 L-230 243 L-216 253 L-202 265 L-175 302 L-129 355 L-73 424 L-63 430"/><path d="M1390 -100 L1372 -103 L1326 -116 L1075 -192 L984 -221 L880 -251 L804 -276 L796 -277 L763 -277 L737 -279 L651 -281 L560 -286 L450 -288 L443 -289 L351 -292"/><path d="M804 -12 L783 -45 L775 -56 L754 -91 L740 -110 L720 -142 L702 -165 L686 -178 L651 -202 L645 -207"/><path d="M243 31 L238 -54 L235 -137"/><path d="M185 -46 L152 -42 L83 -31 L56 -28 L-22 -16 L-42 -10 L-91 -7 L-236 15 L-283 23 L-308 4"/><path d="M416 -68 L595 -67 L643 -56"/><path d="M602 35 L562 30 L530 30 L453 33"/><path d="M-363 379 L-374 367 L-435 317 L-518 251"/><path d="M-558 -58 L-480 -55"/><path d="M-464 -76 L-388 -15"/><path d="M-367 -38 L-417 -78 L-384 -121 L-382 -126 L-381 -148"/><path d="M-633 -156 L-381 -148 L-333 -147 L-322 -149"/><path d="M-556 -105 L-448 -101 L-411 -101 L-402 -97"/><path d="M-480 -55 L-449 -96 L-448 -101"/><path d="M523 185 L431 188 L376 194 L358 190"/><path d="M278 311 L270 231 L270 215 L267 197 L258 167 L251 135"/><path d="M695 157 L695 187 L670 188 L671 212 L639 214 L607 221 L592 223 L580 215"/><path d="M488 313 L489 405"/><path d="M605 455 L602 401 L602 373 L601 361 L600 311"/><path d="M358 211 L270 215"/><path d="M321 -61 L325 27"/><path d="M359 260 L343 260 L315 262 L291 262 L273 264 L252 263 L205 269 L205 314"/><path d="M24 222 L39 220 L86 210 L112 196"/><path d="M172 222 L179 268 L195 274 L205 269"/><path d="M172 222 L268 206"/><path d="M252 263 L246 210"/><path d="M249 233 L270 231"/><path d="M-484 278 L-409 185"/><path d="M-500 375 L-494 365 L-478 313 L-473 298 L-469 290"/><path d="M-577 330 L-573 320 L-518 251"/><path d="M689 -444 L703 -514 L724 -626 L725 -635"/><path d="M119 66 L244 56 L243 31"/><path d="M39 -25 L54 25"/><path d="M631 -134 L645 -207"/><path d="M-102 -540 L-123 -535 L-179 -499 L-438 -363 L-462 -345 L-495 -317 L-525 -296 L-565 -263"/><path d="M-22 115 L11 217 L24 222"/><path d="M112 196 L112 186 L105 147"/><path d="M359 260 L440 247 L528 228"/><path d="M358 190 L292 194 L267 197"/><path d="M461 187 L462 211 L461 243"/><path d="M586 137 L585 179 L580 215 L528 228"/><path d="M216 320 L220 519"/><path d="M-175 302 L-241 367 L-274 401 L-306 431"/><path d="M-518 251 L-541 234 L-561 217 L-570 212"/><path d="M-449 165 L-456 172 L-465 185 L-518 251"/><path d="M-333 219 L-343 232 L-283 284 L-275 290"/><path d="M-236 15 L-239 -13 L-255 -124"/><path d="M-348 55 L-302 82"/><path d="M-351 -42 L-301 -2"/><path d="M-301 -2 L-308 4 L-348 55 L-384 98 L-442 170"/><path d="M-348 55 L-398 16 L-407 8"/><path d="M129 -301 L67 -305 L-70 -307 L-109 -309 L-120 -315 L-136 -327"/><path d="M130 -237 L133 -217 L143 -167 L145 -148"/><path d="M-320 174 L-309 130 L-298 56 L-291 39 L-283 23"/><path d="M-304 94 L-198 113 L-211 192 L-213 211 L-211 225"/><path d="M-325 -21 L-270 -89 L-250 -92"/><path d="M-91 -7 L-94 -25 L-108 -64 L-120 -94 L-130 -125 L-127 -145"/><path d="M-242 -33 L-108 -64"/><path d="M54 25 L71 82 L74 86"/><path d="M-394 -60 L-353 -109"/><path d="M-611 -181 L-581 -213 L-531 -262 L-526 -265 L-480 -302 L-438 -330 L-386 -360 L-349 -379 L-276 -420 L-264 -422 L-190 -460 L-91 -530"/><path d="M351 -292 L240 -297"/><path d="M-103 136 L-98 148 L-90 161 L-81 224 L-76 250"/><path d="M11 248 L-39 243 L-62 248 L-76 250 L-103 263 L-117 320"/><path d="M240 -297 L190 -298 L129 -301"/><path d="M-301 -302 L-264 -270"/><path d="M-182 -360 L-143 -329 L-136 -327"/><path d="M-328 -271 L-293 -239"/><path d="M-315 -286 L-277 -255"/><path d="M-156 -389 L-113 -355"/><path d="M-290 -388 L-254 -358"/><path d="M-191 -431 L-150 -395"/><path d="M-491 -223 L-494 -233 L-526 -265"/><path d="M-151 -482 L-107 -444 L-64 -410"/><path d="M-169 -411 L-146 -436 L-73 -523"/><path d="M-84 -389 L-125 -423"/><path d="M-202 -341 L-182 -360 L-125 -423 L-107 -444 L-51 -515"/><path d="M719 158 L714 159 L672 155 L661 155"/><path d="M661 155 L632 149 L586 137 L533 128"/><path d="M532 311 L528 228"/><path d="M580 215 L582 250 L588 270 L593 302 L593 311"/><path d="M645 -207 L689 -444"/><path d="M105 147 L113 148 L149 144 L182 142 L234 136 L251 135"/><path d="M243 31 L137 36"/><path d="M325 27 L243 31"/><path d="M235 119 L239 124 L239 130 L234 136"/><path d="M105 147 L81 138"/><path d="M251 135 L289 132 L327 127 L346 118"/><path d="M185 -46 L196 -47 L238 -54 L282 -56 L315 -59 L321 -61 L330 -61 L405 -68 L416 -68"/><path d="M406 -12 L324 -7"/><path d="M598 -461 L609 -518"/><path d="M129 -301 L129 -250 L130 -237"/><path d="M-128 -420 L-170 -458"/><path d="M681 37 L639 37 L614 34 L602 35"/><path d="M602 35 L629 40 L630 41 L630 43 L627 48"/><path d="M72 -139 L58 -151"/></g><g class="mm-road mm-mid"><path d="M-16 328 L25 326 L56 326 L123 323 L361 316"/><path d="M639 -114 L777 -262 L782 -267 L810 -287 L813 -289 L900 -320 L945 -338 L980 -347"/><path d="M631 -134 L623 -124"/><path d="M356 105 L360 91 L361 82 L368 64 L386 32"/><path d="M361 316 L373 315 L488 313 L529 311 L600 311 L721 308"/><path d="M-626 298 L-573 231 L-489 130 L-450 78 L-398 16 L-285 -125 L-265 -148"/><path d="M-265 -148 L-239 -182 L-138 -305 L-123 -325 L-69 -386 L-3 -473 L2 -479 L24 -499"/><path d="M-279 -149 L-367 -38 L-388 -15 L-500 123 L-570 212"/><path d="M892 -404 L831 -415 L743 -434 L696 -442 L689 -444"/><path d="M723 300 L593 302 L532 304 L373 307 L361 308"/><path d="M361 308 L205 314 L-9 318"/><path d="M6 -498 L-7 -485 L-64 -410 L-84 -389 L-113 -355 L-136 -327 L-163 -290 L-202 -244 L-249 -185 L-266 -165"/><path d="M426 -141 L445 -248 L450 -288 L457 -326 L466 -388 L480 -472 L481 -484"/><path d="M689 -444 L602 -460 L555 -470 L549 -472 L481 -484"/><path d="M279 -492 L269 -446 L267 -431 L244 -330 L240 -297"/><path d="M-9 318 L-22 312"/><path d="M-29 327 L-16 328"/><path d="M425 -130 L426 -141"/><path d="M240 -297 L236 -287 L235 -281 L234 -248 L234 -162 L232 -148"/><path d="M386 32 L403 -4 L408 -17 L425 -130"/><path d="M808 -300 L801 -297 L778 -277 L686 -178 L650 -141 L631 -134"/><path d="M-266 -165 L-279 -149"/><path d="M239 -148 L240 -161 L243 -281 L240 -297"/></g><g class="mm-road mm-major"><path d="M477 -1253 L470 -1245 L412 -1195 L390 -1167 L369 -1130 L347 -1054 L343 -1045 L320 -955 L316 -936 L305 -913 L292 -893 L267 -868 L-98 -563 L-143 -529 L-194 -498 L-419 -383 L-476 -348"/><path d="M790 14 L782 2 L721 -55 L640 -129 L636 -132 L631 -134"/><path d="M361 316 L358 325 L354 333 L351 388 L351 408 L350 416 L350 499"/><path d="M-124 -153 L-654 -169"/><path d="M-345 -167 L-483 -172 L-597 -175"/><path d="M-322 -149 L-279 -149"/><path d="M631 -134 L622 -136 L426 -141"/><path d="M-70 -157 L-90 -154 L-114 -154 L-124 -153"/><path d="M-124 -153 L-114 -150 L-90 -149 L-70 -145"/><path d="M-395 -369 L-330 -401 L-257 -440 L-222 -460 L-166 -499 L-100 -551 L273 -863 L299 -890 L310 -906 L320 -926 L328 -947 L372 -1117 L394 -1160 L420 -1190 L447 -1214"/><path d="M-735 -39 L-705 -89 L-665 -147 L-627 -192 L-596 -226 L-554 -264 L-525 -288 L-495 -306 L-455 -335 L-395 -369"/><path d="M108 86 L127 52 L171 -21 L180 -38 L227 -114 L235 -137"/><path d="M89 93 L85 99 L80 111 L-22 312 L-73 424 L-75 430 L-141 577"/><path d="M361 316 L361 308"/><path d="M227 -137 L218 -118 L159 -26 L147 -4 L89 93"/><path d="M-266 -165 L-323 -168 L-334 -166 L-345 -167"/><path d="M425 -130 L623 -124 L628 -123 L632 -121 L639 -114"/><path d="M-265 -148 L-231 -148 L-127 -145 L-70 -145"/><path d="M426 -141 L400 -143 L346 -144 L264 -147 L259 -148 L239 -148"/><path d="M108 86 L74 86 L53 88 L-7 97 L-37 105 L-98 133 L-119 146 L-122 147 L-146 166 L-201 215 L-230 243 L-275 290 L-363 379"/><path d="M361 308 L358 232 L358 190"/><path d="M232 -148 L145 -148 L58 -151"/><path d="M232 -148 L227 -137"/><path d="M358 190 L356 151 L356 105"/><path d="M639 -114 L720 -40 L757 -5 L762 -2 L771 7 L781 19"/><path d="M-352 389 L-346 384 L-299 336 L-157 195 L-98 148 L-93 147 L-74 136 L-22 115 L2 110 L20 105 L77 99 L121 99 L160 104 L229 118 L249 121 L282 123 L310 120 L346 118 L356 119 L390 118 L458 105 L536 85 L619 65 L682 49 L761 27 L781 19"/><path d="M361 498 L362 491 L362 408 L363 367 L363 330 L361 316"/><path d="M-130 580 L-76 461 L-63 430 L-16 328 L-9 318 L29 242 L39 220 L67 167 L100 99 L108 86"/><path d="M235 -137 L294 -135"/><path d="M-70 -157 L-103 -160 L-223 -163 L-266 -165"/><path d="M-70 -145 L-41 -144 L17 -140 L51 -140 L72 -139"/><path d="M-476 -348 L-523 -314 L-542 -298 L-583 -260 L-606 -237 L-634 -206 L-673 -156 L-776 4 L-816 82"/><path d="M-345 -152 L-322 -149"/><path d="M-279 -149 L-265 -148"/><path d="M235 -137 L239 -148"/><path d="M239 -148 L232 -148"/><path d="M-598 -161 L-345 -152"/><path d="M294 -135 L425 -130"/><path d="M58 -151 L4 -152 L-70 -157"/><path d="M72 -139 L145 -137 L235 -137"/><path d="M771 7 L715 28 L681 37 L627 48 L527 73 L523 75 L497 80 L449 92 L372 105 L356 105 L269 110 L250 109 L155 89 L127 86 L108 86"/></g><path class="mm-route" d="M-216 69 L-202 -243 L272 100 L127 172 L-216 69"/><path class="mm-route ext" d="M272 100 L531 -315"/><g class="mm-stop"><rect x="-242" y="43" width="52" height="52" transform="rotate(-4 -216 69)"/><text x="-216" y="69">A</text></g><text class="mm-label" x="-216" y="127" text-anchor="middle">糖廍文化園區</text><g class="mm-stop"><rect x="-228" y="-269" width="52" height="52" transform="rotate(-4 -202 -243)"/><text x="-202" y="-243">D</text></g><text class="mm-label" x="-202" y="-283" text-anchor="middle">華江整宅</text><g class="mm-stop"><rect x="246" y="74" width="52" height="52" transform="rotate(-4 272 100)"/><text x="272" y="100">B</text></g><text class="mm-label" x="312" y="108" text-anchor="start">萬華車站</text><g class="mm-stop"><rect x="101" y="146" width="52" height="52" transform="rotate(-4 127 172)"/><text x="127" y="172">C</text></g><text class="mm-label" x="127" y="230" text-anchor="middle">大理街服飾商圈</text><g class="mm-stop ext"><rect x="505" y="-341" width="52" height="52" transform="rotate(-4 531 -315)"/><text x="531" y="-315">E</text></g><text class="mm-label" x="531" y="-257" text-anchor="middle">剝皮寮</text></svg>
+
+    <figcaption>交接點位置示意。紅色虛線是暫定路線 A → D → B → C → A，實際順序要等踏查量過步行時間再決定。D 的位置是估計的。底圖 © OpenStreetMap contributors。</figcaption>
+  </figure>
+</section>
+
+<section id="stops">
+  <h2><span class="no">02</span>交接點</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>代號</th><th>地點</th><th>角色</th><th>交接方式</th><th>對應主題</th><th>狀態</th></tr></thead>
+    <tbody>
+      <tr><td><b>A</b></td><td>糖廍文化園區</td><td>起點／回收點</td><td>園區櫃台</td><td>建築、甘蔗</td><td><span class="pill todo">需申請</span></td></tr>
+      <tr><td><b>B</b></td><td>萬華車站／萬華林宅</td><td>交通入口</td><td>周邊在地小店</td><td>建築、人流</td><td><span class="pill todo">找店家</span></td></tr>
+      <tr><td><b>C</b></td><td>大理街服飾商圈</td><td>產業記憶</td><td>服飾文化館或老店</td><td>人、街屋</td><td><span class="pill todo">需洽談</span></td></tr>
+      <tr><td><b>D</b></td><td>華江整宅</td><td>居住日常</td><td>整宅一樓店家</td><td>建築、人</td><td><span class="pill warn">注意隱私</span></td></tr>
+      <tr><td><b>E</b></td><td>剝皮寮歷史街區</td><td>往北延伸</td><td>公部門場館</td><td>建築</td><td><span class="pill">第二階段</span></td></tr>
+    </tbody>
+  </table></div>
+  <p>測試期先用 <b>A–D 四個點、4 台相機</b>，路線跑順了再加 E。每張地點卡下方的<b>貓咪線索</b>是給參與者找相機用的謎語，<b>地點卡文案</b>是放在相機包裡或印在地圖上的短文，都可以按「複製」直接拿去排版。</p>
+
+  <article class="stop" id="stop-A">
+    <div class="stop-head"><span class="letter">A</span><div><h3>糖廍文化園區</h3><div class="tags"><span class="pill">起點／回收點</span><span class="pill">公部門場館</span></div></div></div>
+    <div class="stop-body">
+      <dl class="facts">
+        <dt>地址</dt><dd>臺北市萬華區大理街 132 之 10 號</dd>
+        <dt>電話</dt><dd>02-2306-7975</dd>
+        <dt>開放</dt><dd>《遠見》寫 10:00–17:00、週一休（12:30–13:30 展館午休）；其他網站寫 10:00–16:30 <span class="pill warn">⚠️ 待確認</span></dd>
+      </dl>
+      <div class="block"><h4>背景</h4>
+        <ul>
+          <li>清代大理街一帶就有私人「糖廍」（傳統製糖作坊）種蔗製糖。</li>
+          <li>日治時期設立台北製糖株式會社，是北台灣第一座現代化製糖廠，也是台灣最北的製糖遺構。</li>
+          <li>戰後由台糖接收，停止製糖改作倉庫。2003 年三座倉庫與古月台指定為市定古蹟，2011 年以「糖廍文化園區」開放。</li>
+          <li>現在戶外種多種甘蔗、展示運甘蔗的五分車；室內有製糖器具與互動展示，也是傳統藝術育成基地。</li>
+        </ul>
+      </div>
+      <div class="block"><h4>拍攝提示</h4>
+        <ul><li><b>建築</b>｜紅磚倉庫的拱門、梯形柱、大跨距屋架；月台與五分車軌道。</li><li><b>人</b>｜來看展的人、排練的藝團、在甘蔗田旁邊散步的鄰居。</li></ul>
+      </div>
+      <div class="two">
+        <div class="copy-card"><h4>貓咪線索</h4><p class="txt">很久以前，這裡的空氣是甜的。
+現在甘蔗還站在原地，紅磚倉庫也還記得糖的味道。
+去找那台載過甘蔗的小火車，相機就在附近等你。</p><button class="cp">複製</button></div>
+        <div class="copy-card label"><h4>地點卡文案</h4><p class="card-title">A　甜味的起點　糖廍文化園區</p><p class="txt">這裡曾是北台灣第一座現代化製糖廠。糖不再生產了，紅磚倉庫卻留了下來。
+從這裡出發，看看一百年後的萬華還剩下什麼甜味。</p><button class="cp">複製</button></div>
+      </div>
+      <div class="callout"><b>合作備註</b>櫃台有固定人員，最適合當起點和最終回收點。需要正式發文或透過老師、系上聯繫管理單位，說明相機寄放、志工輪值和活動期間。</div>
+    </div>
+  </article>
+
+  <article class="stop" id="stop-D">
+    <div class="stop-head"><span class="letter">D</span><div><h3>華江整宅</h3><div class="tags"><span class="pill">居住日常</span><span class="pill warn">住家，注意隱私</span></div></div></div>
+    <div class="stop-body">
+      <dl class="facts">
+        <dt>位置</dt><dd>和平西路三段與環河南路二段口東北側（華江天橋），糖廍北邊步行約 5 分鐘。有店家登記在和平西路三段 294 號 <span class="pill warn">⚠️ 門牌範圍待確認</span></dd>
+        <dt>興建</dt><dd>1969 年規劃，1960–70 年代興建</dd>
+      </dl>
+      <div class="block"><h4>背景</h4>
+        <ul>
+          <li>臺北市府配合華江橋興建計畫規劃，作為公共建設拆遷戶的安置基地。</li>
+          <li>市府第一次在華江地區徵收規劃的住商混合大樓，由沈祖海、陳其寬等六位建築師參與設計。</li>
+          <li>數棟弧形五層樓以環形天橋串連，保留七、八〇年代的老台北氛圍，常有影視取景（如台劇《有生之年》），也吸引外國觀光客來拍照。</li>
+          <li>一樓有挑高騎樓與在地早餐老店。《天下》報導巷口有家無名豆漿老店，菜包不到 9 點就賣完。</li>
+        </ul>
+      </div>
+      <div class="block"><h4>拍攝提示</h4>
+        <ul><li><b>建築</b>｜弧形立面、環形天橋、二樓廊道、整齊重複的窗戶。</li><li><b>人</b>｜一樓早餐店的早晨、在天橋上經過的居民、晾在走廊的衣服。</li></ul>
+      </div>
+      <div class="two">
+        <div class="copy-card"><h4>貓咪線索</h4><p class="txt">這裡的房子是彎的，路也是彎的，連天上都有一條繞圈的橋。
+爬上去繞一圈，你會看到很多人的家。
+下來之後，去早餐吃起來最香的那家問問看。</p><button class="cp">複製</button></div>
+        <div class="copy-card label"><h4>地點卡文案</h4><p class="card-title">D　彎彎的家　華江整宅</p><p class="txt">五十多年前，因為蓋橋而搬家的人住進了這裡。
+對觀光客來說它是拍照景點，對住在這裡的人來說，它就是家。</p><button class="cp">複製</button></div>
+      </div>
+      <div class="callout"><b>注意事項</b>這裡是住家。地點卡和相機說明要提醒：不要對著窗戶或住戶家門拍、拍人先問、不要大聲喧嘩。可以先拜訪里長或管委會說明活動。</div>
+    </div>
+  </article>
+
+  <article class="stop" id="stop-B">
+    <div class="stop-head"><span class="letter">B</span><div><h3>萬華車站／萬華林宅</h3><div class="tags"><span class="pill">交通入口</span><span class="pill todo">找合作店家</span></div></div></div>
+    <div class="stop-body">
+      <dl class="facts">
+        <dt>車站</dt><dd>台鐵地下化車站，鄰近捷運龍山寺站</dd>
+        <dt>林宅</dt><dd>艋舺大道與西園路口，資料寫西園路一段 306 巷 24、26 號 <span class="pill warn">⚠️ 以文化局資料核對</span>。現由星巴克承租一、二樓。</dd>
+      </dl>
+      <div class="block"><h4>背景</h4>
+        <ul>
+          <li>萬華車站 1901 年以「艋舺停車場」開業，1918 年遷到現址，1920 年改名「萬華驛」。</li>
+          <li>1950 年代起，車站帶來的交通便利讓周邊發展出台灣第一個成衣批發市場（見 C）。</li>
+          <li>萬華林宅 1932 年起造、1935 年完工，2000 年指定為市定古蹟，是艋舺仕紳宅邸的代表。</li>
+        </ul>
+      </div>
+      <div class="block"><h4>拍攝提示</h4>
+        <ul><li><b>建築</b>｜林宅立面的洋樓細節；車站出口與艋舺大道的尺度對比。</li><li><b>人</b>｜趕車的人、等人的人、從車站走出來第一眼看到的萬華。</li></ul>
+      </div>
+      <div class="two">
+        <div class="copy-card"><h4>貓咪線索</h4><p class="txt">一百多年前，火車在這裡停下來，人跟布料一起下車。
+車站旁邊有一棟老房子，現在每天都有人在裡面喝咖啡。
+從老房子門口往<span class="blank">待填</span>走，找一扇<span class="blank">待填</span>顏色的門。</p><button class="cp">複製</button></div>
+        <div class="copy-card label"><h4>地點卡文案</h4><p class="card-title">B　下車的地方　萬華車站</p><p class="txt">很多人第一次認識萬華，是從這個車站走出來的那一刻。
+你下車後看到的第一個畫面是什麼？</p><button class="cp">複製</button></div>
+      </div>
+      <div class="callout"><b>合作備註</b>星巴克是連鎖品牌，寄放相機要總公司同意，不建議當交接點，只當地標。改找車站周邊的早餐店、雜貨店、文具店。</div>
+    </div>
+  </article>
+
+  <article class="stop" id="stop-C">
+    <div class="stop-head"><span class="letter">C</span><div><h3>大理街服飾商圈</h3><div class="tags"><span class="pill">產業記憶</span><span class="pill todo">需洽談</span></div></div></div>
+    <div class="stop-body">
+      <dl class="facts">
+        <dt>範圍</dt><dd>大理街、西園路、康定路一帶的成衣批發商圈</dd>
+        <dt>據點</dt><dd>臺北服飾文化館（2007 年開館）內的西園29服飾創作基地，OpenStreetMap 標示為西園路二段 9 號。開放時間僅查到「週六休館」<span class="pill warn">⚠️ 待確認</span></dd>
+      </dl>
+      <div class="block"><h4>背景</h4>
+        <ul>
+          <li>因靠近萬華車站，1950 年代起形成台灣第一個成衣銷售批發市場。</li>
+          <li>先是居民就近開零售店，後有大量成衣加工廠遷入，約 1960 年代轉為知名批發市場。</li>
+          <li>據商會回憶，全盛期業者超過 2,000 家、從業人員約 10 萬人（口述數字）。</li>
+          <li>1980 年代後期工資上漲、產業外移，商圈逐漸沒落；現在仍有店家營業，也有服飾文化館推動轉型。</li>
+        </ul>
+      </div>
+      <div class="block"><h4>拍攝提示</h4>
+        <ul><li><b>人</b>｜捆貨、搬布、在騎樓下整理衣架的老闆；手寫的價格牌。</li><li><b>建築</b>｜騎樓連續的街屋立面、鐵捲門、層層疊疊的招牌。</li></ul>
+      </div>
+      <div class="two">
+        <div class="copy-card"><h4>貓咪線索</h4><p class="txt">這條街曾經有十萬個人在剪布、縫線、搬貨。
+現在走慢一點，你還聽得到縫紉機的聲音。
+找一間門口掛著<span class="blank">待填</span>的店，跟老闆說「我是來找相機的老鼠」。</p><button class="cp">複製</button></div>
+        <div class="copy-card label"><h4>地點卡文案</h4><p class="card-title">C　布料的街道　大理街</p><p class="txt">這裡曾是全台灣衣服出發的地方。
+騎樓下的衣架、鐵捲門、手寫價格牌，都是這條街還在工作的證據。</p><button class="cp">複製</button></div>
+      </div>
+      <div class="callout"><b>合作備註</b>服飾文化館有固定人員，可以當交接點；找一間願意參與的老店，故事性更強。批發店家早上最忙，交接時段要避開。</div>
+    </div>
+  </article>
+
+  <article class="stop ext" id="stop-E">
+    <div class="stop-head"><span class="letter">E</span><div><h3>剝皮寮歷史街區</h3><div class="tags"><span class="pill">第二階段延伸</span></div></div></div>
+    <div class="stop-body">
+      <dl class="facts">
+        <dt>地址</dt><dd>臺北市萬華區康定路 173 巷</dd>
+        <dt>電話</dt><dd>02-2302-3199</dd>
+        <dt>開放</dt><dd>街區 09:00–21:00；展間 09:00–18:00，週一休</dd>
+      </dl>
+      <p>保存清代街屋與日治時期「牌樓厝」，有紅磚牆、拱形騎樓、雕花窗櫺。離糖廍較遠且觀光客多，和測試街區的日常感定位不同；測試順利後，可以當往龍山寺方向延伸的第一站。</p>
+    </div>
+  </article>
+</section>
+
+<section id="copy">
+  <h2><span class="no">03</span>共用文案</h2>
+
+  <div class="copy-card label">
+    <h4>相機包內的說明卡（給老鼠）</h4>
+    <p class="txt">嗨，旅人。你找到相機了！
+
+這台相機在萬華的街道上流浪，已經經過了好幾個人的手。現在換你了。
+
+1｜拍 4 張就好：2 張「人的日常與意外發現」、2 張「建築與街道」。
+2｜寫下來：在紀錄卡上寫你的名字（或暱稱）、拍了第幾張到第幾張、在哪裡拍、一句話。
+3｜送到下一站：照著卡片背面的貓咪線索，把相機交給下一個交接點。
+
+拍人之前，請先問一聲。住家的窗戶和門口，請讓它們保持安靜。
+室內或騎樓下光線暗，記得開閃光燈。
+活動結束後，所有照片會沖洗出來，放在萬華的地圖上。這張地圖，有一部分是你完成的。</p>
+    <p class="sign">—— 一隻住在這裡的貓</p>
+    <button class="cp">複製</button>
+  </div>
+
+  <div class="block">
+    <h3>紀錄卡欄位（每台相機一本）</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>相機編號</th><th>拍攝者（暱稱）</th><th>張數</th><th>拍攝地點</th><th>日期時間</th><th>想說的一句話</th><th>同意公開</th></tr></thead>
+      <tbody><tr><td>C2</td><td>Momo</td><td class="num">第 5 到 8 張</td><td>大理街老公寓</td><td class="num">11/15 10:20</td><td>鐵窗花是一朵一朵的</td><td>☑</td></tr></tbody>
+    </table></div>
+    <p>「張數」是之後把照片對回地點的關鍵。即可拍有張數計數器，請參與者拍前、拍後各看一次。上表是填寫範例。</p>
+  </div>
+
+  <div class="copy-card label">
+    <h4>給合作店家的邀請（簡版）</h4>
+    <p class="txt">您好，我們是＿＿＿＿的學生，正在進行一個名為《尚未完成的地圖》的攝影計畫。
+我們會在萬華街區放置幾台底片即可拍相機，讓參與者輪流拍下自己眼中的萬華，最後把照片做成一張街區地圖。
+想請問能否在活動期間（＿月＿日至＿月＿日）讓相機暫放在店內？
+店家只需要在有人說「我是來找相機的」時把相機交給對方，並在有人送回時收下。我們每天會派人來確認相機狀況，活動結束後也會把成果地圖送給店家。</p>
+    <button class="cp">複製</button>
+  </div>
+
+  <div class="copy-card label">
+    <h4>公開展示同意說明</h4>
+    <p class="txt">你拍的照片與留下的一句話，可能會在成果展、影像地圖、紀錄冊中公開展示（署名為你填的暱稱）。若不同意，請不要勾選紀錄卡上的「同意公開展示」，我們只會把你的照片用於內部整理。</p>
+    <button class="cp">複製</button>
+  </div>
+</section>
+
+<section id="analysis">
+  <h2><span class="no">04</span>初步分析</h2>
+  <h3>需要全組先決定的事</h3>
+  <div class="decision"><span class="n">Q1</span><div>
+    <p class="q">相機是「交回原點」還是「送到下一站」？</p>
+    <p>企劃書的「參與方式 03」寫交回指定交接點，「相機流動機制」寫帶到下一個交接點，兩段說法不一樣。</p>
+    <p class="rec"><b>建議：送到下一站。</b>相機才會真的在街區流動，參與者也會走過兩個地點之間的路段，拍到交接點以外的街景。</p>
+  </div></div>
+  <div class="decision"><span class="n">Q2</span><div>
+    <p class="q">第一個參與者從哪裡拿到線索？</p>
+    <p class="rec"><b>建議：</b>在 A 糖廍設起點看板，加上社群貼文公布第一則線索；之後每一站的相機包裡放下一站的線索。</p>
+  </div></div>
+  <div class="decision"><span class="n">Q3</span><div>
+    <p class="q">相機在交接點之間沒人接手怎麼辦？</p>
+    <p class="rec"><b>建議：</b>安排巡站志工，每天確認每台相機在哪裡、還剩幾張。</p>
+  </div></div>
+
+  <h3>數量估算</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>項目</th><th>估算</th></tr></thead>
+    <tbody>
+      <tr><td>即可拍張數</td><td class="num">一般 27 張／台 <span class="pill warn">⚠️ 依型號確認</span></td></tr>
+      <tr><td>每人拍攝</td><td class="num">4 張（兩主題各 2 張）</td></tr>
+      <tr><td>每台可服務人數</td><td class="num">約 6 人（保留幾張給工作人員記錄）</td></tr>
+      <tr><td>4 台相機</td><td class="num">約 24 位參與者、約 100 張照片</td></tr>
+      <tr><td>5 台相機</td><td class="num">約 30 位參與者、約 130 張照片</td></tr>
+    </tbody>
+  </table></div>
+  <p>想讓地圖上的點更密，可以把每人張數降到 2 張（各主題 1 張），人數就能加倍。</p>
+
+  <h3>主要風險</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>風險</th><th>對策</th></tr></thead>
+    <tbody>
+      <tr><td>相機遺失或被帶走</td><td>外殼貼編號與聯絡方式；交接點登記；每日巡站；預留 1 台備用</td></tr>
+      <tr><td>照片對不回地點</td><td>紀錄卡寫張數區間；可另加 QR code 連到表單，讓參與者用手機回報位置</td></tr>
+      <tr><td>店家忙碌不想處理</td><td>交接動作越簡單越好（只要遞出、收下）；給店家說明卡；送成果地圖當回饋</td></tr>
+      <tr><td>華江整宅住戶反感</td><td>事先拜訪里長或管委會；說明卡寫明不拍窗戶、拍人先問</td></tr>
+      <tr><td>下雨</td><td>相機包用防水袋；避開颱風季或預留延期</td></tr>
+      <tr><td>底片曝光不足</td><td>說明卡提醒室內和騎樓下開閃光燈</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="plan">
+  <h2><span class="no">05</span>執行規劃</h2>
+  <p>以活動期 2 週為例，請依課程時程調整。</p>
+  <ol class="timeline">
+    <li><span class="wk">第 1 週</span><div><b>踏查</b><span>全員走一次 A–D：量步行時間、拍參考照片、確認開放時間，每個點列出 2–3 間可能合作的店家。</span></div></li>
+    <li><span class="wk">第 2–3 週</span><div><b>洽談</b><span>正式聯繫糖廍園區；拜訪店家；拜訪華江整宅里長或管委會。</span></div></li>
+    <li><span class="wk">第 3–4 週</span><div><b>製作物</b><span>地點卡、線索卡、說明卡、紀錄卡、相機包、起點看板，以及貓咪與老鼠插畫。</span></div></li>
+    <li><span class="wk">第 4 週</span><div><b>試跑</b><span>組員自己用 1 台相機跑一圈，修正線索難度與路線。</span></div></li>
+    <li><span class="wk">第 5–6 週</span><div><b>活動</b><span>正式投放相機；每日巡站與社群更新。</span></div></li>
+    <li><span class="wk">第 7 週</span><div><b>回收沖洗</b><span>統一在 A 回收，送沖洗並取得掃描檔。</span></div></li>
+    <li><span class="wk">第 8–9 週</span><div><b>地圖與成果</b><span>照片編號、定位、地圖編排、紀錄冊。</span></div></li>
+  </ol>
+
+  <h3>照片編號與資料表</h3>
+  <p>編號格式是「相機編號-張數」，例如 <b>C2-07</b> 是第 2 台相機的第 7 張。每張照片在試算表佔一列，這張表同時是實體地圖、網路地圖和紀錄冊的資料來源。經緯度在整理時用 Google 地圖對照地點描述補上。</p>
+  <div class="tbl"><table>
+    <thead><tr><th>照片編號</th><th>拍攝者</th><th>主題</th><th>地點描述</th><th>緯度</th><th>經度</th><th>一句話</th><th>同意公開</th></tr></thead>
+    <tbody><tr><td class="num">C2-07</td><td>Momo</td><td>建築</td><td>大理街老公寓</td><td class="num">25.03469</td><td class="num">121.49644</td><td>鐵窗花是一朵一朵的</td><td>是</td></tr></tbody>
+  </table></div>
+
+  <h3>成果製作</h3>
+  <div class="two">
+    <div class="block"><h4>實體地圖（主要成果）</h4><p>用 QGIS 從 OpenStreetMap 匯出道路和街廓，再進 Illustrator 或手繪重畫，配色用米白、底片黃、咖啡棕、暗紅。照片用編號標在地圖上，照片本體排在四周。建議 A1 或 A0。</p></div>
+    <div class="block"><h4>網路影像地圖</h4><p>已有可操作的原型，換上掃描照片和資料表就能用。展場可以放 QR code 讓觀眾用手機看完整照片。<a href="#map" data-goto="map">切換到影像地圖 →</a></p></div>
+    <div class="block"><h4>影像紀錄冊</h4><p>可以依相機分章（每台相機一章，呈現它走過的路線和經手的人），或依地點分章。放入活動過程照片、紀錄卡掃描、貓咪線索原稿。</p></div>
+    <div class="block"><h4>製作物清單</h4>
+      <ul class="checks" style="grid-template-columns:minmax(0,1fr)">
+        <li>即可拍相機 4–5 台（含 1 台備用）</li><li>相機包（防水袋＋編號吊牌）</li><li>說明卡，每台 1 張</li><li>紀錄卡本，每台 1 本</li><li>線索卡（每站的下一站線索）</li><li>地點卡 A–D</li><li>起點看板（放在 A）</li><li>給店家的說明卡與感謝卡</li><li>巡站紀錄表</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="todo">
+  <h2><span class="no">06</span>待確認事項</h2>
+  <ul class="checks">
+    <li>糖廍園區的開放時間、能否寄放相機、申請程序</li>
+    <li>臺北服飾文化館的開放時間</li>
+    <li>萬華林宅、華江整宅的確切門牌與範圍</li>
+    <li>B、C、D 的合作店家（各找 2–3 間備選）</li>
+    <li>實地走一次，決定路線順序與每段步行時間</li>
+    <li>活動日期與回收日期</li>
+    <li>即可拍型號、張數與預算</li>
+    <li>全組決定 Q1–Q3</li>
+  </ul>
+</section>
+
+<section id="refs">
+  <h2><span class="no">07</span>參考資料</h2>
+  <ul class="sources">
+    <li><a href="https://city.gvm.com.tw/article/103735" target="_blank" rel="noopener">遠見城市學：糖廍、龍山寺、剝皮寮散步路線</a></li>
+    <li><a href="https://city.gvm.com.tw/article/107276" target="_blank" rel="noopener">遠見城市學：華江整宅</a></li>
+    <li><a href="https://udn.com/news/story/7323/9494347" target="_blank" rel="noopener">聯合新聞網：華江整宅</a></li>
+    <li><a href="https://www.cw.com.tw/index.php/article/5138343" target="_blank" rel="noopener">天下雜誌：萬華清晨散步</a></li>
+    <li><a href="https://market.cloud.edu.tw/resources/web/1813704" target="_blank" rel="noopener">教育雲：糖廍文化園區</a></li>
+    <li><a href="https://travel.yam.com/place/5649" target="_blank" rel="noopener">蕃薯藤旅遊：糖廍文化園區</a></li>
+    <li><a href="https://www.travel.taipei/en/attraction/details/565" target="_blank" rel="noopener">臺北旅遊網：糖廍文化園區</a></li>
+    <li><a href="https://wanhuadistrict.blogspot.com/2013/05/dali-garment-shopping-area.html?m=1" target="_blank" rel="noopener">Dali Garment Shopping Area</a></li>
+    <li><a href="https://www.gvm.com.tw/article/17531" target="_blank" rel="noopener">遠見：大理街成衣產業</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Wanhua_railway_station" target="_blank" rel="noopener">Wikipedia：Wanhua railway station</a></li>
+    <li><a href="https://spectralcodex.com/wanhua-lin-residence/" target="_blank" rel="noopener">Spectral Codex：萬華林宅</a></li>
+    <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap（底圖與座標）</a></li>
+  </ul>
+</section>
+
+</div></main>
+
+<footer><div class="wrap">《尚未完成的地圖》組員資料手冊・初稿 2026-11-02・單一檔案版，含資料手冊與影像地圖兩個分頁</div></footer>
+
+<script>{
+document.addEventListener('click', async e => {
+  const b = e.target.closest('.cp'); if (!b) return;
+  const card = b.closest('.copy-card');
+  const text = [...card.querySelectorAll('.card-title, .txt, .sign')].map(n => n.innerText.trim()).join('\n\n');
+  try { await navigator.clipboard.writeText(text); }
+  catch { const r = document.createRange(); r.selectNodeContents(card.querySelector('.txt')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+  b.textContent = '已複製'; b.classList.add('done');
+  setTimeout(() => { b.textContent = '複製'; b.classList.remove('done'); }, 1600);
+});
+
+// 目錄列標示目前段落
+const links = [...document.querySelectorAll('.toc a')];
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => { if (en.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id)); });
+}, { rootMargin:'-30% 0px -60% 0px' });
+document.querySelectorAll('main section').forEach(s => io.observe(s));
+}</script>
+
+</div>
+<div id="view-map" class="view" role="tabpanel" aria-labelledby="tab-map" hidden>
+
+
+<div class="app">
+  <div class="mapwrap">
+    <div id="map" aria-label="萬華糖廍周邊地圖"></div>
+    <div class="title-tag">
+      <h1>尚未完成的地圖</h1>
+      <p>萬華・糖廍周邊　相機接力影像地圖</p>
+      <span class="proto">PROTOTYPE · 照片為示意資料</span>
+    </div>
+    <div class="zoom">
+      <button id="zin" aria-label="放大">＋</button>
+      <button id="zout" aria-label="縮小">－</button>
+    </div>
+    <div class="credit">底圖資料 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</div>
+  </div>
+  <aside class="side" aria-live="polite"><div class="side-inner" id="panel"></div></aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>{
+const BASE = {"major":[[[477,-1253],[470,-1245],[412,-1195],[390,-1167],[369,-1130],[347,-1054],[343,-1045],[320,-955],[316,-936],[305,-913],[292,-893],[267,-868],[-98,-563],[-143,-529],[-194,-498],[-419,-383],[-476,-348]],[[790,14],[782,2],[721,-55],[640,-129],[636,-132],[631,-134]],[[361,316],[358,325],[354,333],[351,388],[351,408],[350,416],[350,499]],[[-124,-153],[-654,-169]],[[-345,-167],[-483,-172],[-597,-175]],[[-322,-149],[-279,-149]],[[-654,-169],[-864,-176]],[[-816,82],[-840,142]],[[631,-134],[622,-136],[426,-141]],[[-1797,-204],[-1655,-195],[-1471,-191],[-931,-174],[-886,-173],[-864,-176]],[[-70,-157],[-90,-154],[-114,-154],[-124,-153]],[[-124,-153],[-114,-150],[-90,-149],[-70,-145]],[[-395,-369],[-330,-401],[-257,-440],[-222,-460],[-166,-499],[-100,-551],[273,-863],[299,-890],[310,-906],[320,-926],[328,-947],[372,-1117],[394,-1160],[420,-1190],[447,-1214]],[[-735,-39],[-705,-89],[-665,-147],[-627,-192],[-596,-226],[-554,-264],[-525,-288],[-495,-306],[-455,-335],[-395,-369]],[[-863,390],[-863,359],[-861,322],[-852,249],[-844,213],[-834,173],[-821,134],[-799,83],[-784,52]],[[-859,214],[-866,247],[-871,282],[-877,359],[-878,407],[-871,477],[-865,517],[-860,540],[-835,625]],[[954,-230],[943,-190],[932,-162],[904,-112],[887,-86],[870,-66]],[[-447,459],[-574,585],[-621,623],[-653,643],[-696,665],[-763,690],[-917,715],[-1283,780],[-1344,795],[-1411,816],[-1476,843],[-1533,873],[-1561,890],[-1609,922],[-1637,942]],[[-439,474],[-391,429],[-365,402],[-358,396]],[[108,86],[127,52],[171,-21],[180,-38],[227,-114],[235,-137]],[[89,93],[85,99],[80,111],[-22,312],[-73,424],[-75,430],[-141,577]],[[870,-66],[877,-51]],[[361,316],[361,308]],[[227,-137],[218,-118],[159,-26],[147,-4],[89,93]],[[781,19],[834,71]],[[877,-51],[907,-86],[935,-130]],[[872,-4],[839,61]],[[361,512],[361,498]],[[872,-4],[876,-10]],[[1239,383],[1216,368],[1166,340],[1093,296],[1010,220],[1004,213],[951,163],[839,61]],[[-266,-165],[-323,-168],[-334,-166],[-345,-167]],[[38,-538],[31,-526],[22,-517]],[[425,-130],[623,-124],[628,-123],[632,-121],[639,-114]],[[-265,-148],[-231,-148],[-127,-145],[-70,-145]],[[426,-141],[400,-143],[346,-144],[264,-147],[259,-148],[239,-148]],[[108,86],[74,86],[53,88],[-7,97],[-37,105],[-98,133],[-119,146],[-122,147],[-146,166],[-201,215],[-230,243],[-275,290],[-363,379]],[[781,19],[811,2],[848,-23],[877,-51]],[[870,-66],[842,-41],[831,-30],[782,2],[771,7]],[[328,1083],[337,1049],[350,990],[352,968],[354,857],[355,847],[355,781],[358,707],[358,664],[361,512]],[[350,499],[349,514]],[[361,308],[358,232],[358,190]],[[349,514],[349,691],[348,725],[346,750],[344,843],[343,848],[341,966],[340,985],[322,1077]],[[232,-148],[145,-148],[58,-151]],[[232,-148],[227,-137]],[[358,190],[356,151],[356,105]],[[639,-114],[720,-40],[757,-5],[762,-2],[771,7],[781,19]],[[-352,389],[-346,384],[-299,336],[-157,195],[-98,148],[-93,147],[-74,136],[-22,115],[2,110],[20,105],[77,99],[121,99],[160,104],[229,118],[249,121],[282,123],[310,120],[346,118],[356,119],[390,118],[458,105],[536,85],[619,65],[682,49],[761,27],[781,19]],[[-363,379],[-396,411]],[[361,498],[362,491],[362,408],[363,367],[363,330],[361,316]],[[-146,588],[-151,600],[-161,618],[-184,641]],[[-130,580],[-76,461],[-63,430],[-16,328],[-9,318],[29,242],[39,220],[67,167],[100,99],[108,86]],[[235,-137],[294,-135]],[[-1494,866],[-1424,829],[-1341,802],[-1283,788],[-1166,766],[-1027,742],[-808,707],[-759,697],[-712,683],[-668,663],[-639,646],[-608,626],[-577,603],[-439,474]],[[-70,-157],[-103,-160],[-223,-163],[-266,-165]],[[-70,-145],[-41,-144],[17,-140],[51,-140],[72,-139]],[[-864,-176],[-877,-180],[-896,-183],[-1517,-202],[-1586,-203],[-1724,-212],[-1797,-218]],[[-654,-169],[-624,-162],[-598,-161]],[[-151,623],[-147,616],[-143,606],[-141,604],[-136,592]],[[839,61],[834,71]],[[834,71],[844,76],[886,116],[978,201],[1004,226],[1018,241],[1048,269],[1070,288],[1081,299],[1197,370],[1230,389]],[[839,61],[790,14]],[[-136,592],[-130,580]],[[-141,577],[-146,588]],[[-840,142],[-851,178],[-859,214]],[[-784,52],[-735,-39]],[[-853,521],[-861,471],[-863,423],[-863,390]],[[-829,608],[-853,521]],[[-396,411],[-447,459]],[[-358,396],[-352,389]],[[-476,-348],[-523,-314],[-542,-298],[-583,-260],[-606,-237],[-634,-206],[-673,-156],[-776,4],[-816,82]],[[-345,-152],[-322,-149]],[[-279,-149],[-265,-148]],[[235,-137],[239,-148]],[[239,-148],[232,-148]],[[97,-691],[38,-538]],[[-598,-161],[-345,-152]],[[-597,-175],[-623,-176],[-654,-169]],[[294,-135],[425,-130]],[[877,-51],[879,-36],[877,-21]],[[877,-21],[872,-4]],[[58,-151],[4,-152],[-70,-157]],[[72,-139],[145,-137],[235,-137]],[[876,-10],[893,-43],[932,-114],[935,-130]],[[771,7],[715,28],[681,37],[627,48],[527,73],[523,75],[497,80],[449,92],[372,105],[356,105],[269,110],[250,109],[155,89],[127,86],[108,86]]],"mid":[[[-756,725],[-791,633],[-798,600]],[[132,-721],[121,-719],[94,-701],[88,-690],[85,-673],[55,-598]],[[-16,328],[25,326],[56,326],[123,323],[361,316]],[[-587,514],[-564,538]],[[1027,365],[1005,364],[992,366],[821,413],[783,421],[735,430],[720,432]],[[-580,507],[-624,465],[-671,416],[-693,397],[-707,388],[-721,381],[-734,375],[-752,370],[-781,365],[-810,363],[-834,366],[-855,371],[-868,376],[-886,386],[-909,397],[-956,429],[-1231,607],[-1238,615],[-1292,651],[-1323,668],[-1358,680],[-1454,709],[-1522,732]],[[639,-114],[777,-262],[782,-267],[810,-287],[813,-289],[900,-320],[945,-338],[980,-347]],[[631,-134],[623,-124]],[[356,105],[360,91],[361,82],[368,64],[386,32]],[[1093,296],[1081,299],[1062,301],[723,300]],[[721,308],[802,308],[900,309],[978,311],[1049,311],[1073,310],[1080,308],[1087,303],[1093,296]],[[361,316],[373,315],[488,313],[529,311],[600,311],[721,308]],[[361,512],[426,502],[536,483],[676,453],[722,442]],[[-626,298],[-573,231],[-489,130],[-450,78],[-398,16],[-285,-125],[-265,-148]],[[-265,-148],[-239,-182],[-138,-305],[-123,-325],[-69,-386],[-3,-473],[2,-479],[24,-499]],[[-279,-149],[-367,-38],[-388,-15],[-500,123],[-570,212]],[[-396,411],[-440,434],[-548,541]],[[24,-499],[36,-514],[54,-545],[79,-623],[97,-671],[104,-686],[110,-697],[126,-712],[132,-721]],[[350,499],[308,504],[220,508]],[[895,-333],[815,-302],[808,-300]],[[892,-404],[831,-415],[743,-434],[696,-442],[689,-444]],[[723,300],[593,302],[532,304],[373,307],[361,308]],[[361,308],[205,314],[-9,318]],[[6,-498],[-7,-485],[-64,-410],[-84,-389],[-113,-355],[-136,-327],[-163,-290],[-202,-244],[-249,-185],[-266,-165]],[[426,-141],[445,-248],[450,-288],[457,-326],[466,-388],[480,-472],[481,-484]],[[349,514],[361,512]],[[-1520,739],[-1446,716],[-1321,674],[-1299,664],[-1223,617],[-936,430],[-893,401],[-873,390],[-855,384],[-836,379],[-818,376],[-795,375],[-776,376],[-757,380],[-728,389],[-704,402],[-680,422],[-587,514]],[[722,442],[757,437],[811,425],[916,397],[1008,375],[1020,374],[1022,375],[1036,377]],[[24,-499],[6,-498]],[[689,-444],[602,-460],[555,-470],[549,-472],[481,-484]],[[720,432],[553,466],[534,469],[520,473],[401,493],[361,498]],[[279,-492],[269,-446],[267,-431],[244,-330],[240,-297]],[[279,-492],[205,-493],[153,-497],[104,-498],[101,-499],[66,-500],[40,-500],[24,-499]],[[-570,212],[-575,217],[-610,263],[-634,291]],[[-9,318],[-22,312]],[[-29,327],[-16,328]],[[-634,291],[-700,374],[-726,404],[-730,406],[-776,462],[-789,484],[-797,499],[-805,521],[-813,554],[-813,582],[-810,603]],[[-478,603],[-473,617],[-463,633],[-406,696]],[[220,508],[64,514],[33,516],[17,519],[1,524],[-61,540],[-70,545],[-78,551],[-85,559],[-97,577],[-104,582],[-117,583],[-130,580]],[[-368,591],[-453,604],[-478,603]],[[-366,606],[-274,592],[-193,578],[-171,579],[-146,588]],[[953,-396],[901,-405],[892,-404]],[[722,442],[724,455],[727,460],[744,482],[757,494],[785,532],[809,557],[823,573],[856,612],[898,664],[917,685],[965,744],[1017,801]],[[720,432],[722,442]],[[723,300],[721,308]],[[721,308],[720,357],[721,386],[722,393],[721,398],[720,432]],[[814,108],[778,87],[753,76],[725,72]],[[1166,558],[1130,511],[1046,390],[1019,355],[881,165],[852,136],[814,108]],[[-555,547],[-568,563],[-585,580],[-587,585],[-588,592],[-589,611],[-602,634],[-633,658],[-638,668]],[[-638,668],[-615,653],[-598,640],[-568,609],[-533,575]],[[-141,577],[-183,565],[-231,570],[-363,591],[-368,591]],[[-136,592],[-108,596],[-102,594],[-89,586],[-69,558],[-62,553],[-51,548],[20,528],[53,524],[135,523],[258,517],[342,515],[349,514]],[[361,498],[350,499]],[[481,-484],[488,-532],[489,-545],[491,-552],[499,-615],[500,-617],[504,-671]],[[481,-484],[361,-490]],[[834,71],[827,83],[818,102],[814,108],[779,180],[751,235],[723,300]],[[425,-130],[426,-141]],[[361,-490],[279,-492]],[[240,-297],[236,-287],[235,-281],[234,-248],[234,-162],[232,-148]],[[-130,580],[-141,577]],[[-146,588],[-136,592]],[[892,-404],[906,-397],[937,-392]],[[386,32],[403,-4],[408,-17],[425,-130]],[[-555,547],[-533,575]],[[-810,603],[-798,600]],[[-798,600],[-801,581],[-801,565],[-799,548],[-794,524],[-787,503],[-775,481],[-715,409],[-679,363],[-626,298]],[[-526,569],[-535,556],[-548,541]],[[-526,569],[-379,425],[-359,407],[-358,396]],[[-533,575],[-496,606],[-488,611],[-473,617],[-455,618],[-430,616],[-366,606]],[[-548,541],[-558,532]],[[-558,532],[-580,507]],[[-564,538],[-562,539],[-555,547]],[[808,-300],[801,-297],[778,-277],[686,-178],[650,-141],[631,-134]],[[980,-347],[948,-354],[895,-333]],[[-266,-165],[-279,-149]],[[239,-148],[240,-161],[243,-281],[240,-297]],[[-478,603],[-494,594],[-526,569]],[[55,-598],[22,-517],[6,-498]]],"minor":[[[389,-862],[392,-855],[391,-838],[388,-817],[377,-770],[372,-735],[372,-686],[366,-592],[361,-490]],[[-264,-422],[-270,-413],[-290,-388],[-324,-350],[-381,-282],[-431,-226],[-432,-223]],[[-418,-312],[-488,-231],[-491,-223]],[[-242,-372],[-202,-341],[-152,-305]],[[-249,-287],[-212,-331]],[[-210,-286],[-227,-266]],[[-524,-225],[-527,-178]],[[-323,-168],[-334,-171],[-527,-178],[-548,-178],[-553,-179],[-611,-181]],[[-370,-172],[-370,-221],[-301,-302],[-288,-319],[-191,-431],[-151,-482],[-146,-491],[-147,-502],[-114,-524],[-102,-540]],[[-438,-330],[-418,-312],[-381,-282],[-311,-219],[-293,-239],[-277,-255],[-264,-270],[-257,-276],[-243,-264]],[[-355,-376],[-272,-305],[-249,-287],[-227,-266],[-202,-244]],[[-272,-305],[-242,-341],[-222,-339],[-163,-290]],[[-370,-221],[-432,-223],[-491,-223],[-559,-226],[-564,-230]],[[-700,374],[-706,367],[-729,358],[-746,355],[-769,353],[-845,352],[-849,344],[-848,320],[-842,280],[-833,231],[-823,193],[-823,188],[-820,181]],[[58,-151],[59,-161],[59,-262],[62,-313],[61,-350],[64,-399],[67,-430],[67,-490],[66,-500]],[[834,-469],[822,-406],[815,-363],[809,-335],[806,-314],[812,-274]],[[528,228],[523,185],[528,167],[533,128],[533,99],[532,98],[527,73]],[[680,970],[660,917],[618,800],[617,794],[572,667],[565,636],[557,587],[536,483],[534,469]],[[572,667],[629,635],[665,617],[717,589],[785,532]],[[-333,219],[-320,174]],[[-247,-65],[-253,-63],[-301,-2]],[[-175,302],[-168,298],[-156,301],[-42,355]],[[-772,67],[-765,72],[-727,92],[-649,150],[-612,181],[-570,212]],[[-820,181],[-811,184],[-775,210],[-720,240],[-698,251],[-680,263],[-634,291]],[[-718,-24],[-627,28],[-603,44],[-563,66],[-543,79],[-524,94],[-500,118],[-498,121]],[[-498,121],[-470,149],[-442,170],[-333,219],[-244,238],[-230,243],[-216,253],[-202,265],[-175,302],[-129,355],[-73,424],[-63,430]],[[1390,-100],[1372,-103],[1326,-116],[1075,-192],[984,-221],[880,-251],[804,-276],[796,-277],[763,-277],[737,-279],[651,-281],[560,-286],[450,-288],[443,-289],[351,-292]],[[-488,611],[-464,590],[-432,556],[-411,536],[-392,516],[-389,514],[-322,450],[-306,431]],[[-183,565],[-186,560],[-214,528],[-238,506],[-306,431],[-342,400],[-352,389]],[[804,-12],[783,-45],[775,-56],[754,-91],[740,-110],[720,-142],[702,-165],[686,-178],[651,-202],[645,-207]],[[362,408],[394,408],[489,405]],[[291,-680],[282,-503],[279,-492]],[[243,31],[238,-54],[235,-137]],[[1133,50],[1119,50],[1114,49],[1053,45],[1039,43],[1015,43],[963,40],[948,38],[893,-43]],[[185,-46],[152,-42],[83,-31],[56,-28],[-22,-16],[-42,-10],[-91,-7],[-236,15],[-283,23],[-308,4]],[[416,-68],[595,-67],[643,-56]],[[602,35],[562,30],[530,30],[453,33]],[[-363,379],[-374,367],[-435,317],[-518,251]],[[-558,-58],[-480,-55]],[[-556,-105],[-652,-108],[-662,-113]],[[-558,-58],[-556,-105],[-556,-128],[-554,-153]],[[-464,-76],[-388,-15]],[[-367,-38],[-417,-78],[-384,-121],[-382,-126],[-381,-148]],[[-633,-156],[-381,-148],[-333,-147],[-322,-149]],[[-556,-105],[-448,-101],[-411,-101],[-402,-97]],[[-820,181],[-807,157],[-772,67]],[[-480,-55],[-449,-96],[-448,-101]],[[-626,298],[-567,337],[-500,375],[-467,404],[-456,415],[-446,427],[-444,428],[-440,434]],[[-711,302],[-755,274],[-784,260]],[[-680,263],[-691,279],[-711,302],[-746,346],[-746,355]],[[899,391],[902,401],[911,414],[956,471],[1107,648],[1115,655]],[[523,185],[431,188],[376,194],[358,190]],[[278,311],[270,231],[270,215],[267,197],[258,167],[251,135]],[[779,180],[747,166],[719,158]],[[725,72],[719,158]],[[695,157],[695,187],[670,188],[671,212],[639,214],[607,221],[592,223],[580,215]],[[488,313],[489,405]],[[601,361],[488,364]],[[720,357],[667,360],[601,361]],[[605,455],[602,401],[602,373],[601,361],[600,311]],[[358,211],[270,215]],[[321,-61],[325,27]],[[359,260],[343,260],[315,262],[291,262],[273,264],[252,263],[205,269],[205,314]],[[24,222],[39,220],[86,210],[112,196]],[[172,222],[179,268],[195,274],[205,269]],[[172,222],[268,206]],[[252,263],[246,210]],[[249,233],[270,231]],[[609,-518],[646,-509],[700,-499],[756,-487],[774,-482],[789,-479],[793,-479],[834,-469],[947,-448]],[[-634,291],[-626,298]],[[-484,278],[-409,185]],[[362,408],[317,410],[230,411],[218,412]],[[-500,375],[-494,365],[-478,313],[-473,298],[-469,290]],[[33,516],[31,449],[39,408],[0,397],[-39,379]],[[-577,330],[-573,320],[-518,251]],[[804,417],[811,425],[815,434],[872,501],[898,530]],[[689,-444],[703,-514],[724,-626],[725,-635]],[[961,477],[833,585]],[[6,-498],[-7,-498],[-14,-500],[-91,-530]],[[119,66],[244,56],[243,31]],[[39,-25],[54,25]],[[631,-134],[645,-207]],[[-1797,-198],[-1780,-195],[-1737,-191],[-1670,-188],[-1546,-184],[-1471,-183],[-932,-167],[-900,-161],[-820,-158],[-806,-153],[-795,-145],[-787,-134],[-782,-122],[-782,-108],[-785,-97],[-803,-54],[-805,-44],[-806,-31],[-805,-20],[-801,-11],[-795,-3],[-787,5],[-777,9],[-764,10],[-754,7],[-737,-5],[-729,-16],[-695,-76],[-653,-138]],[[-102,-540],[-123,-535],[-179,-499],[-438,-363],[-462,-345],[-495,-317],[-525,-296],[-565,-263]],[[-22,115],[11,217],[24,222]],[[957,874],[828,723],[824,715],[778,662],[717,589]],[[112,196],[112,186],[105,147]],[[359,260],[440,247],[528,228]],[[358,190],[292,194],[267,197]],[[461,187],[462,211],[461,243]],[[586,137],[585,179],[580,215],[528,228]],[[-223,676],[-263,635],[-270,591]],[[-270,591],[-271,576]],[[-238,506],[-275,547],[-271,576]],[[-406,696],[-360,655],[-366,606]],[[282,847],[287,526],[288,516]],[[216,320],[220,519]],[[-352,389],[-363,379]],[[-175,302],[-241,367],[-274,401],[-306,431]],[[-368,591],[-369,568],[-333,531],[-270,470]],[[-366,606],[-368,591]],[[-270,470],[-217,414]],[[-518,251],[-541,234],[-561,217],[-570,212]],[[-449,165],[-456,172],[-465,185],[-518,251]],[[-333,219],[-343,232],[-283,284],[-275,290]],[[-236,15],[-239,-13],[-255,-124]],[[-348,55],[-302,82]],[[-351,-42],[-301,-2]],[[-301,-2],[-308,4],[-348,55],[-384,98],[-442,170]],[[-348,55],[-398,16],[-407,8]],[[129,-301],[67,-305],[-70,-307],[-109,-309],[-120,-315],[-136,-327]],[[130,-237],[133,-217],[143,-167],[145,-148]],[[-320,174],[-309,130],[-298,56],[-291,39],[-283,23]],[[-304,94],[-198,113],[-211,192],[-213,211],[-211,225]],[[-325,-21],[-270,-89],[-250,-92]],[[-91,-7],[-94,-25],[-108,-64],[-120,-94],[-130,-125],[-127,-145]],[[-242,-33],[-108,-64]],[[54,25],[71,82],[74,86]],[[-394,-60],[-353,-109]],[[-663,7],[-623,-60]],[[-727,92],[-677,-1]],[[-611,-181],[-581,-213],[-531,-262],[-526,-265],[-480,-302],[-438,-330],[-386,-360],[-349,-379],[-276,-420],[-264,-422],[-190,-460],[-91,-530]],[[-772,67],[-751,26],[-718,-24]],[[-775,210],[-748,138],[-727,92]],[[-604,43],[-628,107],[-649,150],[-683,192],[-720,240]],[[-748,138],[-683,192]],[[-680,263],[-612,181],[-563,66]],[[-548,541],[-553,526],[-560,511],[-694,382],[-700,374]],[[351,-292],[240,-297]],[[717,589],[690,561],[678,545],[662,528]],[[662,528],[665,519],[676,453]],[[861,-611],[884,-609],[930,-599],[1034,-581]],[[-103,136],[-98,148],[-90,161],[-81,224],[-76,250]],[[11,248],[-39,243],[-62,248],[-76,250],[-103,263],[-117,320]],[[240,-297],[190,-298],[129,-301]],[[900,191],[798,198]],[[774,189],[798,198]],[[-301,-302],[-264,-270]],[[-182,-360],[-143,-329],[-136,-327]],[[-328,-271],[-293,-239]],[[-315,-286],[-277,-255]],[[-156,-389],[-113,-355]],[[-290,-388],[-254,-358]],[[-191,-431],[-150,-395]],[[-491,-223],[-494,-233],[-526,-265]],[[-60,-560],[-48,-561],[36,-601],[55,-598]],[[-151,-482],[-107,-444],[-64,-410]],[[-169,-411],[-146,-436],[-73,-523]],[[-84,-389],[-125,-423]],[[-202,-341],[-182,-360],[-125,-423],[-107,-444],[-51,-515]],[[719,158],[714,159],[672,155],[661,155]],[[798,198],[800,230],[801,300]],[[661,155],[632,149],[586,137],[533,128]],[[-102,-540],[-110,-549],[-113,-554]],[[532,311],[528,228]],[[580,215],[582,250],[588,270],[593,302],[593,311]],[[645,-207],[689,-444]],[[488,364],[363,367]],[[489,405],[721,398]],[[105,147],[113,148],[149,144],[182,142],[234,136],[251,135]],[[243,31],[137,36]],[[325,27],[243,31]],[[235,119],[239,124],[239,130],[234,136]],[[105,147],[81,138]],[[251,135],[289,132],[327,127],[346,118]],[[185,-46],[196,-47],[238,-54],[282,-56],[315,-59],[321,-61],[330,-61],[405,-68],[416,-68]],[[406,-12],[324,-7]],[[598,-461],[609,-518]],[[129,-301],[129,-250],[130,-237]],[[-565,-263],[-623,-210],[-633,-202],[-649,-193],[-667,-188],[-687,-186],[-902,-192],[-930,-191],[-1471,-208],[-1493,-210],[-1516,-215],[-1548,-220],[-1610,-223]],[[-726,404],[-715,409],[-689,425],[-635,483],[-570,543],[-555,547]],[[861,-611],[857,-597],[834,-469]],[[-633,-156],[-611,-181]],[[-718,-24],[-649,-134],[-642,-144],[-637,-148],[-633,-156]],[[-653,-138],[-642,-151],[-633,-156]],[[-560,-176],[-560,-179]],[[-560,-157],[-560,-176]],[[-553,-157],[-554,-153]],[[-553,-176],[-553,-157]],[[-554,-153],[-560,-157]],[[-553,-179],[-553,-176]],[[-80,-581],[61,-698],[115,-745]],[[-128,-420],[-170,-458]],[[-91,-530],[-102,-540]],[[-91,-530],[-77,-545],[-60,-560],[58,-659],[69,-664],[85,-673]],[[94,-701],[80,-693],[-100,-543],[-102,-540]],[[-113,-554],[-84,-576],[-80,-581]],[[-80,-581],[-90,-582],[-119,-560],[-113,-554]],[[681,37],[639,37],[614,34],[602,35]],[[602,35],[629,40],[630,41],[630,43],[627,48]],[[489,405],[493,477]],[[-585,580],[-606,600],[-632,620],[-643,624],[-660,635],[-688,650],[-741,674],[-772,682]],[[898,530],[983,630]],[[72,-139],[58,-151]]],"alley":[[[-627,28],[-564,-46],[-558,-58]],[[-413,134],[-320,174]],[[-309,130],[-384,98]],[[485,492],[504,597],[520,676]],[[360,557],[432,545],[492,533]],[[550,552],[608,540]],[[401,493],[395,459],[398,425],[394,408]],[[432,545],[426,502]],[[399,657],[402,614],[401,550]],[[402,593],[500,574]],[[402,614],[504,597]],[[457,-326],[485,-324],[523,-312],[558,-299],[569,-294],[575,-290],[579,-285]],[[844,598],[816,620],[810,623]],[[145,-137],[146,-130],[147,-99],[150,-74]],[[17,-140],[17,-111],[32,-58],[39,-25]],[[639,37],[642,-47],[643,-56],[653,-86],[659,-96]],[[-480,-55],[-456,-32],[-543,79]],[[-558,-58],[-694,-62]],[[-798,353],[-794,321],[-782,246],[-775,210]],[[984,504],[863,605],[856,612]],[[615,144],[619,107],[619,65]],[[532,311],[535,329],[536,343],[543,363]],[[295,28],[293,-27],[311,-27]],[[311,-27],[323,-27]],[[112,196],[122,194],[185,171],[182,142]],[[112,196],[115,199],[128,237],[133,275],[126,315]],[[-305,-141],[-303,-176]],[[217,373],[352,370]],[[308,504],[307,465],[308,451],[317,410]],[[-451,366],[-437,371],[-429,376],[-392,407]],[[-467,404],[-461,395],[-438,328],[-435,317]],[[-820,181],[-857,170]],[[872,501],[809,557]],[[785,532],[851,476]],[[830,451],[772,499],[757,494]],[[-803,-83],[-813,-87]],[[-851,-76],[-869,-24],[-885,9]],[[-830,38],[-834,47],[-1055,-67]],[[-901,141],[-942,303]],[[-989,118],[-972,123],[-968,123],[-952,128],[-902,140],[-901,141]],[[829,-443],[844,-439]],[[845,-445],[830,-448]],[[876,-10],[895,11],[918,43],[940,84],[944,94],[959,121],[966,128],[978,135],[982,142],[984,159]],[[59,-238],[130,-237]],[[139,-189],[227,-198],[234,-200]],[[12,107],[15,124],[14,135],[23,156],[29,159],[33,166],[32,173],[14,187],[30,210]],[[608,540],[620,608]],[[39,408],[56,326]],[[230,411],[237,373],[245,319]],[[-63,430],[-50,442],[-49,447],[-46,450],[-43,456],[-38,460],[-16,486],[-11,486],[-2,481],[5,479],[32,477]],[[71,256],[80,258],[108,268],[132,270],[160,280],[186,294]],[[406,-12],[530,-6]],[[532,-67],[530,-27],[530,30]],[[243,507],[241,472],[246,471],[246,456],[245,455],[252,411],[264,347]],[[376,194],[382,160],[386,151],[395,141],[398,130],[400,116]],[[551,380],[602,373]],[[569,377],[575,387],[576,399],[569,402],[572,423],[572,430],[566,430],[557,432],[545,437]],[[641,-16],[703,-14],[712,-29],[727,-49]],[[562,30],[564,42],[587,40],[586,33]],[[330,-61],[331,-64]],[[130,-237],[234,-248]],[[-70,-307],[-70,-333]],[[-70,-333],[-69,-386]],[[-451,495],[-446,501],[-411,536]],[[-432,556],[-471,515]],[[-432,477],[-426,482],[-392,516]],[[-412,458],[-371,497]],[[-363,466],[-391,437]],[[-317,686],[-317,598]],[[-296,667],[-299,596]],[[319,681],[320,604]],[[582,487],[588,519]],[[617,480],[623,512]],[[555,525],[623,512],[654,507]],[[317,410],[329,381]],[[351,388],[329,381],[318,371]],[[318,371],[298,356],[264,347],[265,341],[252,336]],[[395,459],[362,459]],[[398,425],[408,426],[414,458]],[[464,406],[464,445]],[[428,444],[427,407]],[[-389,514],[-371,533]],[[-371,533],[-414,576],[-414,598]],[[-322,450],[-304,469],[-286,486]],[[-371,533],[-304,469]],[[-313,583],[-307,545],[-278,515]],[[-335,406],[-349,453]],[[-217,414],[-190,329],[-187,314]],[[-221,522],[-162,317]],[[-217,414],[-201,401],[-187,403]],[[-119,527],[-153,517],[-166,517],[-197,520],[-211,525],[-214,528]],[[-191,519],[-147,370],[-129,355]],[[-153,517],[-119,403],[-101,389]],[[-169,446],[-135,456]],[[0,397],[13,327]],[[-32,362],[-9,373],[4,375]],[[0,397],[-11,451],[-10,472]],[[18,519],[1,480]],[[-490,353],[-473,359]],[[-480,320],[-463,325]],[[-535,272],[-478,313]],[[-493,302],[-505,339],[-540,321]],[[-541,234],[-554,251],[-557,265],[-564,276],[-574,277],[-581,284]],[[152,-613],[145,-507]],[[145,-507],[143,-485]],[[143,-485],[129,-301]],[[-205,154],[-310,134]],[[-320,174],[-211,192]],[[-382,96],[-432,57]],[[-400,118],[-450,78]],[[-250,-92],[-207,-101]],[[-207,-101],[-206,-147]],[[-207,-101],[-191,-105],[-130,-125]],[[-179,-48],[-182,-65]],[[-184,-71],[-191,-105]],[[-148,2],[-150,-16],[-94,-25]],[[-239,-13],[-156,-29]],[[54,25],[124,6],[130,7],[134,9],[137,12]],[[23,-91],[77,-108]],[[77,-108],[72,-139]],[[77,-108],[104,-114],[105,-116],[128,-122],[146,-121]],[[147,-99],[166,-99]],[[2,96],[1,90],[-20,26],[-16,6],[-22,-16]],[[-20,26],[15,21],[49,8]],[[-41,-144],[-42,-137],[-42,-104],[-62,-101],[-52,-54],[-45,-39],[-42,-10]],[[-112,-73],[-59,-89]],[[-101,-44],[-78,-48],[-52,-54]],[[-78,-48],[-85,-81]],[[-42,-104],[-40,-106],[-34,-82]],[[-120,-94],[-90,-102]],[[-384,-121],[-363,-120]],[[-384,-121],[-369,-110]],[[-556,-128],[-382,-126]],[[-649,-134],[-588,-132]],[[-407,8],[-456,-32]],[[-689,-7],[-664,-48],[-664,-61]],[[-715,70],[-640,131]],[[-714,68],[-727,59],[-759,42]],[[-698,251],[-629,167]],[[-657,277],[-619,231]],[[-769,353],[-766,341],[-763,335],[-728,291]],[[-782,246],[-798,243],[-833,231]],[[-798,243],[-805,276],[-810,319],[-794,321]],[[-755,274],[-740,229]],[[-755,221],[-734,188]],[[-729,358],[-673,292],[-691,279]],[[258,546],[264,517]],[[253,544],[258,517]],[[321,-376],[325,-293]],[[351,-292],[347,-235]],[[268,-373],[273,-373]],[[268,-373],[265,-373]],[[242,-238],[253,-238]],[[252,-240],[244,-240],[242,-241]],[[810,623],[762,551]],[[608,540],[662,528]],[[740,529],[718,547]],[[725,514],[748,492]],[[557,587],[614,576]],[[614,576],[658,568],[690,561]],[[562,619],[620,608]],[[737,573],[734,568]],[[347,-235],[346,-144]],[[11,217],[-81,224]],[[-85,193],[1,186]],[[-87,180],[-47,171],[-46,164],[-30,160],[-21,165],[-7,162]],[[-74,136],[-64,153],[-53,148],[-50,153],[-14,140]],[[574,-224],[555,-171],[540,-138]],[[478,-140],[485,-230]],[[568,-137],[570,-167],[575,-177],[590,-220]],[[702,-56],[688,-49],[672,-45],[642,-47]],[[150,-74],[152,-42]],[[623,-124],[608,-77],[605,-65]],[[533,-127],[533,-87],[532,-67]],[[366,-592],[418,-590],[495,-585]],[[466,-388],[430,-393],[427,-367],[418,-330]],[[849,-341],[877,-334],[891,-332]],[[906,-397],[896,-346],[895,-333]],[[-972,51],[-907,85]],[[361,-490],[360,-388],[361,-334],[358,-292]],[[604,106],[619,107]],[[584,185],[605,186]],[[704,218],[718,216]],[[829,358],[849,405]],[[639,214],[647,262]],[[670,188],[672,155]],[[790,157],[799,163],[809,173]],[[528,167],[585,179]],[[808,120],[816,125],[859,166]],[[797,143],[833,176]],[[880,231],[878,268]],[[720,341],[728,342],[799,323]],[[803,131],[810,136],[849,173]],[[801,268],[878,268],[905,267]],[[800,230],[922,231],[927,228]],[[721,132],[765,135],[775,139],[793,150]],[[801,308],[799,323],[800,330],[799,345],[802,352],[804,366]],[[723,102],[786,110],[799,115],[808,120]],[[900,309],[900,352],[907,389]],[[671,212],[681,260],[680,301]],[[722,393],[842,354],[900,352]],[[695,187],[698,199],[699,212],[704,218],[705,230],[721,228],[723,239]],[[464,132],[532,134]],[[453,33],[451,12],[453,9],[454,-10]],[[458,105],[464,132],[462,148],[461,187]],[[411,-37],[420,-37],[478,-32],[503,-28],[530,-27]],[[479,239],[493,256],[492,269],[493,282],[505,304]],[[154,-300],[151,-272],[153,-240]],[[663,-525],[703,-514]],[[-259,297],[-231,324]],[[-23,-408],[-23,-306]],[[196,-267],[197,-244]],[[214,-672],[210,-603]],[[200,-398],[161,-399]],[[-311,349],[-266,392]],[[-78,238],[-45,232]],[[420,-687],[418,-590],[411,-487]],[[-69,342],[-91,401]],[[-87,334],[-105,384]],[[-286,323],[-277,333],[-241,367]],[[-16,-196],[59,-194]],[[-274,401],[-257,418]],[[585,-658],[567,-537]],[[798,-509],[793,-479]],[[-62,248],[-89,333]],[[-751,320],[-765,312]],[[26,-229],[26,-262]],[[54,-545],[147,-543]],[[328,-683],[326,-594],[321,-491]],[[674,-597],[717,-589]],[[102,-400],[64,-399]],[[778,-512],[840,-502]],[[-16,-181],[59,-180]],[[-103,263],[-148,262],[-156,301]],[[23,-408],[-16,-410],[-49,-399],[-60,-398]],[[812,-620],[803,-544]],[[703,-375],[708,-362],[713,-343],[737,-279]],[[102,-430],[102,-400]],[[361,-334],[387,-330],[402,-329],[436,-331],[457,-328]],[[729,-436],[722,-399],[766,-391]],[[0,-264],[26,-262],[59,-262]],[[185,-443],[266,-429]],[[813,-355],[735,-368],[677,-381]],[[667,-555],[663,-525],[657,-507]],[[667,-555],[677,-616],[680,-643]],[[-12,-306],[-16,-196],[-16,-153]],[[775,-427],[772,-417],[760,-364]],[[-81,224],[-117,217],[-139,220],[-146,240]],[[-565,206],[-570,196],[-534,113],[-524,94]],[[713,-343],[730,-343],[749,-335],[775,-336],[809,-335]],[[782,-546],[778,-512],[778,-499],[774,-482]],[[5,-306],[4,-287],[0,-264],[1,-250],[26,-250]],[[613,-527],[622,-563],[628,-566],[629,-586],[627,-652]],[[711,-559],[782,-546],[793,-546],[823,-540],[846,-539]],[[769,-548],[766,-532],[762,-528],[760,-524],[756,-487]],[[139,-430],[67,-430]],[[152,-616],[236,-598],[366,-592]],[[904,301],[906,231]],[[711,71],[710,90],[700,90],[700,101]],[[-721,-236],[-723,-242],[-725,-268]],[[-113,-554],[-161,-523],[-203,-499],[-423,-387],[-473,-356],[-543,-305],[-580,-271],[-614,-238],[-647,-201],[-693,-138],[-759,-37],[-809,53],[-830,97],[-840,121],[-857,170]],[[-871,386],[-871,359],[-869,318],[-865,281],[-861,256],[-853,217],[-842,174],[-835,152],[-806,76],[-783,28],[-774,13]],[[-857,170],[-868,157],[-884,146],[-901,141]],[[-857,170],[-885,164],[-921,310]],[[-857,170],[-872,228],[-882,284],[-887,322]],[[551,380],[504,404]],[[555,-286],[554,-251],[552,-228]],[[554,-256],[572,-254],[596,-247]],[[645,-207],[641,-209],[574,-224],[552,-228],[442,-231]],[[406,79],[340,87]],[[251,92],[222,124],[217,123]],[[412,-232],[402,-151],[400,-143]],[[128,237],[172,222]],[[197,-376],[194,-354],[190,-298]],[[200,134],[197,129],[192,124],[187,122],[174,123]],[[195,135],[188,127],[174,128]],[[229,118],[233,125],[233,127],[231,131],[225,133],[200,134],[195,135],[112,141],[105,147]],[[135,139],[134,133]],[[697,482],[711,450]],[[740,529],[785,532]],[[718,547],[734,568]],[[692,519],[668,527]],[[-127,60],[-119,116],[-103,136]],[[817,292],[868,277],[895,295]],[[491,-552],[613,-527],[609,-518]],[[-888,359],[-888,416]],[[-887,322],[-888,359]],[[-432,7],[-466,-20]],[[-125,-60],[-137,-61],[-163,-56],[-169,-50]],[[-171,-50],[-172,-57]],[[-139,-87],[-150,-89],[-153,-91],[-157,-98]],[[323,49],[321,27]],[[282,91],[300,90]],[[326,87],[323,49]],[[59,-180],[137,-197]],[[167,-220],[164,-241]],[[202,-245],[204,-224]],[[403,-161],[346,-162]],[[26,-425],[23,-408],[25,-400],[27,-342]],[[67,-430],[35,-428],[26,-425]],[[64,-399],[25,-400]],[[102,-400],[102,-381]],[[206,-439],[216,-474],[226,-493]],[[206,-439],[202,-416],[197,-376]],[[67,-466],[87,-467],[103,-471],[118,-471],[119,-430]],[[20,-495],[21,-467],[22,-465],[24,-464],[23,-450]],[[-16,-455],[-8,-449],[-7,-415]],[[607,221],[611,259]],[[639,-174],[633,-176],[617,-177]],[[888,-316],[888,-308],[882,-259],[880,-251]],[[896,-346],[842,-357]],[[722,-399],[717,-372]],[[720,-215],[717,-223],[656,-265]],[[595,-67],[533,-87]],[[541,-228],[526,-138]],[[442,-231],[347,-235]],[[662,-139],[670,-132],[683,-123],[687,-122],[696,-125],[720,-142]],[[718,-94],[740,-110]],[[735,-67],[718,-94],[696,-125]],[[725,-51],[735,-67],[754,-91]],[[744,-33],[775,-56]],[[719,-200],[785,-116],[842,-41]],[[-227,-142],[-230,-134],[-239,-123],[-251,-116]],[[-225,-169],[-225,-161]],[[-231,-181],[-225,-169]],[[239,107],[235,57]],[[161,35],[162,63]],[[274,269],[351,266],[349,276],[352,276],[353,286],[349,288],[354,300]],[[354,300],[342,300],[337,306],[322,305],[278,308]],[[351,266],[354,260],[353,211]],[[274,274],[299,273]],[[210,-603],[199,-573]],[[-277,-255],[-260,-242]],[[-311,-219],[-298,-206]],[[178,553],[178,553]],[[823,573],[792,596]],[[-907,85],[-919,136]],[[300,90],[340,87]],[[251,92],[282,91]],[[395,141],[422,145],[422,150],[448,147],[462,148]],[[147,138],[147,132]],[[530,-20],[641,-16]],[[715,28],[712,3],[712,-11],[707,-12],[703,-14]],[[-217,-161],[-217,-153]],[[-225,-153],[-227,-142]],[[-588,598],[-584,604],[-578,607],[-568,609]],[[-755,437],[-763,431],[-779,431]],[[760,-524],[707,-537]],[[235,-268],[196,-267]],[[456,-557],[458,-587]],[[456,-557],[450,-486]],[[491,-552],[456,-557]],[[622,-563],[667,-555]],[[823,-540],[815,-506]],[[941,-502],[919,-498],[918,-489],[885,-494],[879,-497],[882,-515]],[[940,-518],[903,-517],[903,-514],[882,-515]],[[717,-589],[772,-579]],[[577,-601],[500,-617]],[[147,-543],[215,-517]],[[789,-479],[779,-435],[775,-427]],[[-558,532],[-566,515],[-577,504]],[[-1232,627],[-1021,490],[-896,407],[-871,393],[-835,383],[-817,380],[-777,381],[-757,385],[-730,394],[-707,405],[-682,424],[-590,517]],[[-590,517],[-579,528],[-564,538]],[[-577,504],[-597,486],[-627,457],[-662,421],[-684,401],[-713,381],[-749,367],[-779,362],[-810,359],[-837,362],[-856,367],[-899,386],[-912,393],[-947,418],[-1071,500],[-1242,610]],[[-915,533],[-862,523]],[[294,-312],[294,-310]],[[293,-306],[293,-305],[241,-304]],[[291,-347],[284,-346],[285,-337]],[[1,524],[-8,484]],[[-8,484],[-10,472]],[[-211,192],[-189,196]],[[284,-535],[226,-535]],[[-809,53],[-831,41]],[[-725,-268],[-728,-295]],[[-709,-146],[-714,-161],[-711,-205],[-721,-236]],[[-835,76],[-878,54]],[[-871,40],[-871,40]],[[-830,97],[-885,68]],[[-888,344],[-901,339],[-942,303]],[[-911,103],[-896,112],[-902,140]],[[-681,-190],[-689,-191]],[[-691,-160],[-690,-190]],[[-799,-164],[-799,-166]],[[-916,-159],[-916,-161],[-900,-158],[-836,-157],[-820,-155],[-813,-153],[-805,-164]],[[-682,-178],[-597,-178]],[[-811,-167],[-598,-159]],[[-251,-197],[-249,-200]],[[-280,-116],[-338,-44]],[[-302,-133],[-371,-50]],[[-304,-140],[-376,-142]],[[-275,-87],[-271,-83]],[[-324,-27],[-320,-23]],[[-380,-117],[-378,-119]],[[-394,-65],[-389,-60]],[[-296,-155],[-303,-155],[-303,-160]],[[-230,-180],[-219,-193]],[[-226,-171],[-214,-170]],[[-301,-132],[-305,-141]],[[-281,-116],[-301,-132]],[[-251,-116],[-257,-114]],[[-249,-197],[-231,-181]],[[-303,-176],[-296,-186],[-283,-196],[-273,-198],[-261,-199],[-249,-197]],[[-257,-114],[-265,-113],[-281,-116]],[[-553,-164],[-545,-164]],[[-448,-175],[-447,-150]],[[188,-894],[183,-890],[87,-763],[61,-719],[40,-695],[-55,-615],[-73,-607]],[[-147,-502],[-304,-424],[-296,-409]],[[-129,-577],[-177,-549]],[[-123,-568],[-129,-577]],[[-126,-573],[-96,-592]],[[-177,-549],[-169,-533],[-167,-534]],[[-167,-534],[-124,-561],[-123,-568]],[[-161,-523],[-167,-534]],[[-667,-381],[-653,-401],[-636,-414],[-559,-453],[-474,-484],[-429,-490],[-394,-490],[-363,-487],[-338,-483],[-315,-484],[-289,-490],[-264,-503],[-200,-550],[-195,-552]],[[-658,-352],[-677,-364]],[[-686,-349],[-667,-381]],[[-572,-325],[-556,-338]],[[-446,-389],[-449,-391],[-454,-391],[-468,-385],[-475,-387],[-483,-394],[-491,-398],[-501,-398],[-510,-395],[-522,-395],[-530,-392],[-550,-373],[-571,-358]],[[-569,-411],[-576,-401],[-584,-394],[-576,-368],[-571,-358],[-556,-338],[-556,-327],[-552,-313]],[[-613,-426],[-609,-421],[-589,-411],[-555,-412],[-547,-407],[-530,-392]],[[-435,-396],[-435,-401],[-430,-411],[-430,-423],[-427,-433]],[[-682,-355],[-701,-367],[-716,-364]],[[-893,-286],[-873,-288],[-853,-292],[-837,-289],[-811,-292],[-795,-292],[-786,-293],[-776,-298],[-751,-302],[-730,-301],[-718,-303],[-704,-313],[-694,-331],[-686,-349]],[[-655,-358],[-649,-363],[-640,-380],[-634,-384],[-627,-384],[-620,-381],[-558,-308]],[[-727,-291],[-706,-300],[-688,-311],[-672,-326],[-668,-337]],[[-406,-414],[-414,-424],[-427,-433],[-435,-441],[-452,-478],[-454,-487]],[[820,-280],[812,-274],[801,-268]],[[774,-285],[798,-309]],[[122,140],[122,134]],[[648,-70],[609,-79]],[[315,-59],[314,-121]],[[483,-86],[483,-91]],[[489,-109],[499,-99]],[[482,-100],[483,-104],[489,-109],[490,-120]],[[501,-89],[501,-89]],[[483,-91],[483,-91]],[[465,-68],[466,-84],[470,-87],[492,-86],[498,-87],[501,-89],[500,-68]],[[-198,-168],[-198,-170]],[[604,516],[607,534]],[[530,488],[371,519]],[[703,428],[525,463],[400,486],[374,490]],[[-643,624],[-646,621],[-655,604]],[[-799,548],[-788,549],[-784,548],[-780,546],[-774,540]],[[-830,567],[-840,527],[-841,509]],[[-810,603],[-818,604],[-821,601],[-830,567]],[[-416,19],[-432,7]],[[-149,543],[-136,547]],[[-272,224],[-267,199]],[[-274,232],[-272,224]],[[282,-56],[282,-63]],[[278,-63],[278,-56]],[[-919,508],[-937,509],[-944,457],[-956,441],[-947,432],[-909,439],[-899,522],[-887,580],[-854,687]],[[-928,435],[-918,517],[-904,586],[-871,692],[-854,687]],[[-888,447],[-879,526],[-869,569],[-859,606],[-848,641],[-833,680]],[[-947,604],[-917,596],[-902,591]],[[-682,-162],[-682,-160]],[[-597,-168],[-597,-160]],[[-560,-167],[-615,-168]],[[62,-335],[86,-334]],[[6,-95],[20,-99]],[[-901,339],[-905,343],[-909,344],[-927,345],[-933,347],[-952,338]],[[-875,391],[-874,393],[-875,396],[-878,399],[-878,403],[-876,407],[-876,409],[-877,411],[-880,411]],[[-871,386],[-880,399],[-880,415],[-877,417],[-879,419],[-878,429],[-880,432],[-879,434],[-877,435],[-876,444],[-878,446],[-878,448],[-877,450],[-875,450],[-873,474],[-875,477],[-874,479],[-872,480],[-869,500],[-871,504],[-868,507],[-862,523]],[[-862,523],[-853,521]],[[-862,523],[-857,542],[-857,562],[-844,606],[-843,608],[-841,609]],[[-730,406],[-749,406],[-762,412],[-800,424],[-853,424],[-863,423]],[[-888,416],[-888,447]],[[-892,444],[-897,444],[-888,447]],[[-897,444],[-892,487],[-883,549],[-867,608],[-836,708]],[[-893,363],[-893,416]],[[-893,416],[-892,444]],[[-909,344],[-896,357],[-893,363]],[[-861,152],[-881,141],[-871,111],[-860,117],[-850,121]],[[-865,150],[-855,119]],[[-871,147],[-860,117]],[[-876,144],[-866,114]],[[-857,170],[-861,155],[-861,152],[-850,121],[-841,125]],[[-850,115],[-848,111],[-850,104]],[[-840,121],[-879,100]],[[286,-324],[287,-312],[294,-312]],[[285,-337],[286,-324]],[[294,-308],[293,-306]],[[294,-310],[294,-308]],[[132,-619],[129,-590],[150,-587]],[[353,355],[333,355],[318,371]]],"rail":[[[200,81],[200,81]],[[200,69],[200,69]],[[260,-145],[260,-145]]],"bld":[[[549,493],[549,493]],[[591,516],[591,516]],[[625,509],[625,509]],[[406,79],[406,79]],[[249,77],[249,77]],[[397,286],[397,286]],[[272,-336],[272,-336]],[[296,20],[296,20]],[[279,-377],[279,-377]],[[273,-377],[273,-377]],[[279,-370],[279,-370]],[[478,-344],[478,-344]],[[629,583],[629,583]],[[269,-115],[269,-115]],[[432,-103],[432,-103]],[[331,-180],[331,-180]],[[75,307],[75,307]],[[380,-518],[380,-518]],[[859,-451],[859,-451]],[[-125,57],[-125,57]],[[60,547],[60,547]],[[-274,59],[-274,59]],[[-232,51],[-232,51]],[[-201,67],[-201,67]],[[665,350],[665,350]],[[659,572],[659,572]],[[66,-176],[66,-176]],[[5,168],[5,168]],[[162,497],[162,497]],[[125,223],[125,223]],[[226,454],[226,454]],[[236,383],[236,383]],[[254,427],[254,427]],[[118,153],[118,153]],[[394,297],[394,297]],[[382,377],[382,377]],[[367,284],[367,284]],[[492,336],[492,336]],[[414,264],[414,264]],[[365,251],[365,251]],[[267,303],[267,303]],[[234,304],[234,304]],[[213,303],[213,303]],[[440,297],[440,297]],[[347,271],[347,271]],[[571,321],[571,321]],[[493,190],[493,190]],[[229,172],[229,172]],[[539,17],[539,17]],[[334,-110],[334,-110]],[[447,-424],[447,-424]],[[-97,-344],[-97,-344]],[[70,-291],[70,-291]],[[90,-318],[90,-318]],[[-212,-119],[-212,-119]],[[-32,32],[-32,32]],[[-44,96],[-44,96]],[[-109,-72],[-109,-72]],[[-76,-50],[-76,-50]],[[-122,-123],[-122,-123]],[[-731,365],[-731,365]],[[264,622],[264,622]],[[314,-330],[314,-330]],[[262,-337],[262,-337]],[[472,194],[472,194]],[[-546,-47],[-546,-47]],[[114,118],[114,118]],[[697,380],[697,380]],[[207,582],[207,582]],[[866,-212],[866,-212]],[[795,-238],[795,-238]],[[-439,270],[-439,270]],[[-462,273],[-462,273]],[[-596,346],[-596,346]],[[-550,439],[-550,439]],[[-545,478],[-545,478]],[[-529,394],[-529,394]],[[-544,420],[-544,420]],[[-535,500],[-535,500]],[[-463,432],[-463,432]],[[-545,51],[-545,51]],[[-569,13],[-569,13]],[[-544,-6],[-544,-6]],[[135,-511],[135,-511]],[[646,541],[646,541]],[[229,-527],[229,-527]],[[-502,-76],[-502,-76]],[[-489,-80],[-489,-80]],[[-177,-67],[-177,-67]],[[-188,-106],[-188,-106]],[[487,-185],[487,-185]],[[380,-329],[380,-329]],[[110,-271],[110,-271]],[[-162,-243],[-162,-243]],[[-163,-243],[-163,-243]],[[-248,-104],[-248,-104]],[[-227,-169],[-227,-169]],[[423,-592],[423,-592]],[[246,-61],[246,-61]],[[649,-604],[649,-604]],[[223,65],[223,65]],[[304,34],[304,34]],[[136,60],[136,60]],[[281,283],[281,283]],[[283,292],[283,292]],[[553,367],[553,367]],[[560,555],[560,555]],[[654,423],[654,423]],[[615,559],[615,559]],[[615,595],[615,595]],[[530,443],[530,443]],[[455,-477],[455,-477]],[[-6,-550],[-6,-550]],[[-125,-269],[-125,-269]],[[793,613],[793,613]],[[733,590],[733,590]],[[752,595],[752,595]],[[886,91],[886,91]],[[204,-491],[204,-491]],[[469,-282],[469,-282]],[[481,-278],[481,-278]],[[462,-271],[462,-271]],[[482,-281],[482,-281]],[[488,-281],[488,-281]],[[496,-279],[496,-279]],[[498,-279],[498,-279]],[[509,-279],[509,-279]],[[522,-279],[522,-279]],[[534,-279],[534,-279]],[[520,-263],[520,-263]],[[516,-249],[516,-249]],[[503,-257],[503,-257]],[[503,-257],[503,-257]],[[501,-233],[501,-233]],[[496,-257],[496,-257]],[[495,-247],[495,-247]],[[475,-258],[475,-258]],[[469,-246],[469,-246]],[[464,-257],[464,-257]],[[471,-241],[471,-241]],[[464,-257],[464,-257]],[[465,-228],[465,-228]],[[448,-217],[448,-217]],[[446,-208],[446,-208]],[[444,-192],[444,-192]],[[442,-181],[442,-181]],[[455,-173],[455,-173]],[[460,-170],[460,-170]],[[466,-186],[466,-186]],[[480,-186],[480,-186]],[[472,-208],[472,-208]],[[488,-228],[488,-228]],[[518,-227],[518,-227]],[[516,-213],[516,-213]],[[514,-203],[514,-203]],[[522,-191],[522,-191]],[[528,-183],[528,-183]],[[483,-176],[483,-176]],[[483,-163],[483,-163]],[[509,-161],[509,-161]],[[99,580],[99,580]],[[94,584],[94,584]],[[95,584],[95,584]],[[-12,552],[-12,552]],[[12,547],[12,547]],[[29,586],[29,586]],[[-47,593],[-47,593]],[[76,561],[76,561]],[[-86,605],[-86,605]],[[272,532],[272,532]],[[233,533],[233,533]],[[203,534],[203,534]],[[194,536],[194,536]],[[179,538],[179,538]],[[168,537],[168,537]],[[188,577],[188,577]],[[184,603],[184,603]],[[-81,531],[-81,531]],[[-79,534],[-79,534]],[[-167,590],[-167,590]],[[-89,511],[-89,511]],[[-41,571],[-41,571]],[[30,605],[30,605]],[[-2,599],[-2,599]],[[-43,594],[-43,594]],[[-44,578],[-44,578]],[[-53,560],[-53,560]],[[-110,559],[-110,559]],[[-77,527],[-77,527]],[[-72,506],[-72,506]],[[-96,526],[-96,526]],[[-66,460],[-66,460]],[[246,463],[246,463]],[[246,460],[246,460]],[[242,457],[242,457]],[[232,473],[232,473]],[[238,461],[238,461]],[[227,456],[227,456]],[[223,463],[223,463]],[[223,456],[223,456]],[[14,341],[14,341]],[[140,479],[140,479]],[[212,477],[212,477]],[[204,463],[204,463]],[[109,337],[109,337]],[[56,466],[56,466]],[[132,552],[132,552]],[[918,462],[918,462]],[[779,572],[779,572]],[[315,-92],[315,-92]],[[193,42],[193,42]],[[342,158],[342,158]],[[331,158],[331,158]],[[417,168],[417,168]],[[397,144],[397,144]],[[394,143],[394,143]],[[402,129],[402,129]],[[386,132],[386,132]],[[378,138],[378,138]],[[363,148],[363,148]],[[367,155],[367,155]],[[364,159],[364,159]],[[433,-17],[433,-17]],[[427,-17],[427,-17]],[[421,-35],[421,-35]],[[380,-19],[380,-19]],[[373,-36],[373,-36]],[[535,-117],[535,-117]],[[99,130],[99,130]],[[-16,-545],[-16,-545]],[[-53,-519],[-53,-519]],[[-101,-195],[-101,-195]],[[-39,-170],[-39,-170]],[[-834,516],[-834,516]],[[-749,510],[-749,510]],[[-839,389],[-839,389]],[[-851,428],[-851,428]],[[-771,418],[-771,418]],[[455,-520],[455,-520]],[[554,-498],[554,-498]],[[500,-558],[500,-558]],[[693,-502],[693,-502]],[[712,-517],[712,-517]],[[613,-212],[613,-212]],[[464,-323],[464,-323]],[[475,-336],[475,-336]],[[538,-328],[538,-328]],[[648,-309],[648,-309]],[[412,-169],[412,-169]],[[412,-105],[412,-105]],[[400,-119],[400,-119]],[[678,-458],[678,-458]],[[743,-556],[743,-556]],[[834,542],[834,542]],[[872,563],[872,563]],[[399,543],[399,543]],[[458,608],[458,608]],[[856,523],[856,523]],[[821,482],[821,482]],[[382,577],[382,577]],[[849,582],[849,582]],[[451,533],[451,533]],[[790,490],[790,490]],[[443,563],[443,563]],[[478,512],[478,512]],[[896,602],[896,602]],[[413,540],[413,540]],[[458,544],[458,544]],[[799,500],[799,500]],[[487,555],[487,555]],[[834,497],[834,497]],[[454,586],[454,586]],[[812,471],[812,471]],[[889,591],[889,591]],[[410,570],[410,570]],[[823,551],[823,551]],[[869,582],[869,582]],[[466,530],[466,530]],[[410,526],[410,526]],[[812,516],[812,516]],[[484,581],[484,581]],[[366,579],[366,579]],[[865,534],[865,534]],[[898,583],[898,583]],[[832,517],[832,517]],[[381,608],[381,608]],[[463,515],[463,515]],[[366,610],[366,610]],[[441,547],[441,547]],[[381,534],[381,534]],[[860,573],[860,573]],[[439,589],[439,589]],[[810,535],[810,535]],[[473,606],[473,606]],[[456,561],[456,561]],[[845,532],[845,532]],[[788,509],[788,509]],[[382,593],[382,593]],[[892,563],[892,563]],[[409,553],[409,553]],[[884,553],[884,553]],[[409,594],[409,594]],[[779,499],[779,499]],[[843,552],[843,552]],[[810,491],[810,491]],[[801,525],[801,525]],[[801,481],[801,481]],[[880,599],[880,599]],[[427,567],[427,567]],[[881,573],[881,573]],[[884,612],[884,612]],[[428,538],[428,538]],[[474,541],[474,541]],[[823,506],[823,506]],[[469,583],[469,583]],[[870,607],[870,607]],[[488,603],[488,603]],[[832,561],[832,561]],[[857,592],[857,592]],[[482,527],[482,527]],[[395,528],[395,528]],[[821,526],[821,526]],[[381,623],[381,623]],[[366,594],[366,594]],[[854,543],[854,543]],[[425,550],[425,550]],[[424,592],[424,592]],[[908,576],[908,576]],[[425,523],[425,523]],[[843,507],[843,507]],[[478,512],[478,512]],[[448,518],[448,518]],[[482,527],[482,527]],[[471,558],[471,558]],[[-438,35],[-438,35]],[[-504,56],[-504,56]],[[-431,26],[-431,26]],[[-495,107],[-495,107]],[[-443,0],[-443,0]],[[-467,51],[-467,51]],[[-486,96],[-486,96]],[[-507,38],[-507,38]],[[-476,23],[-476,23]],[[-479,44],[-479,44]],[[383,-285],[383,-285]],[[-490,69],[-490,69]],[[388,-285],[388,-285]],[[-487,37],[-487,37]],[[-476,17],[-476,17]],[[-468,69],[-468,69]],[[-531,67],[-531,67]],[[399,-284],[399,-284]],[[-463,30],[-463,30]],[[-449,7],[-449,7]],[[423,-283],[423,-283]],[[437,-282],[437,-282]],[[366,-285],[366,-285]],[[310,-40],[310,-40]],[[301,-40],[301,-40]],[[293,-40],[293,-40]],[[221,-29],[221,-29]],[[216,-28],[216,-28]],[[211,-28],[211,-28]],[[204,-27],[204,-27]],[[113,-12],[113,-12]],[[108,-11],[108,-11]],[[103,-10],[103,-10]],[[99,-9],[99,-9]],[[94,-8],[94,-8]],[[89,-6],[89,-6]],[[84,-5],[84,-5]],[[91,18],[91,18]],[[75,-3],[75,-3]],[[70,-1],[70,-1]],[[65,0],[65,0]],[[268,-404],[268,-404]],[[283,-404],[283,-404]],[[326,-351],[326,-351]],[[325,-359],[325,-359]],[[324,-364],[324,-364]],[[324,-370],[324,-370]],[[321,-376],[321,-376]],[[321,-382],[321,-382]],[[425,-314],[425,-314]],[[423,-296],[423,-296]],[[434,-296],[434,-296]],[[410,-259],[410,-259]],[[404,-260],[404,-260]],[[399,-260],[399,-260]],[[393,-260],[393,-260]],[[388,-261],[388,-261]],[[382,-261],[382,-261]],[[374,-247],[374,-247]],[[374,-252],[374,-252]],[[374,-258],[374,-258]],[[382,-238],[382,-238]],[[627,542],[627,542]],[[640,540],[640,540]],[[677,421],[677,421]],[[571,365],[571,365]],[[567,364],[567,364]],[[558,365],[558,365]],[[585,565],[585,565]],[[563,570],[563,570]],[[582,551],[582,551]],[[589,587],[589,587]],[[613,583],[613,583]],[[592,599],[592,599]],[[552,439],[552,439]],[[548,440],[548,440]],[[538,442],[538,442]],[[-473,59],[-473,59]],[[-495,24],[-495,24]],[[-522,56],[-522,56]],[[497,466],[497,466]],[[475,470],[475,470]],[[482,469],[482,469]],[[488,468],[488,468]],[[447,466],[447,466]],[[437,478],[437,478]],[[414,413],[414,413]],[[427,425],[427,425]],[[431,427],[431,427]],[[461,410],[461,410]],[[469,415],[469,415]],[[469,420],[469,420]],[[470,424],[470,424]],[[470,428],[470,428]],[[470,432],[470,432]],[[470,436],[470,436]],[[470,440],[470,440]],[[470,444],[470,444]],[[462,444],[462,444]],[[462,440],[462,440]],[[462,436],[462,436]],[[462,431],[462,431]],[[462,427],[462,427]],[[461,423],[461,423]],[[461,419],[461,419]],[[470,448],[470,448]],[[-763,69],[-763,69]],[[374,-241],[374,-241]],[[-747,345],[-747,345]],[[-745,341],[-745,341]],[[-742,338],[-742,338]],[[-739,335],[-739,335]],[[-730,299],[-730,299]],[[-733,302],[-733,302]],[[-735,305],[-735,305]],[[-738,309],[-738,309]],[[-741,312],[-741,312]],[[-743,315],[-743,315]],[[-746,318],[-746,318]],[[-749,322],[-749,322]],[[-737,331],[-737,331]],[[-750,348],[-750,348]],[[726,-61],[726,-61]],[[323,386],[323,386]],[[308,387],[308,387]],[[255,402],[255,402]],[[303,403],[303,403]],[[318,402],[318,402]],[[341,599],[341,599]],[[328,565],[328,565]],[[323,610],[323,610]],[[342,541],[342,541]],[[325,586],[325,586]],[[26,273],[26,273]],[[536,110],[536,110]],[[750,66],[750,66]],[[208,-394],[208,-394]],[[231,-397],[231,-397]],[[52,-369],[52,-369]],[[34,-370],[34,-370]],[[45,-466],[45,-466]],[[54,-540],[54,-540]],[[77,-594],[77,-594]],[[37,389],[37,389]],[[-78,423],[-78,423]],[[-90,448],[-90,448]],[[-269,268],[-269,268]],[[-315,235],[-315,235]],[[53,40],[53,40]],[[291,-452],[291,-452]],[[279,-565],[279,-565]],[[374,-544],[374,-544]],[[446,-65],[446,-65]],[[902,-388],[902,-388]],[[825,-366],[825,-366]],[[810,-383],[810,-383]],[[796,-386],[796,-386]],[[790,-414],[790,-414]],[[580,282],[580,282]],[[585,282],[585,282]],[[581,297],[581,297]],[[577,297],[577,297]],[[572,297],[572,297]],[[567,284],[567,284]],[[870,-599],[870,-599]],[[609,-77],[609,-77]],[[602,-115],[602,-115]],[[779,-551],[779,-551]],[[749,-555],[749,-555]],[[-205,-94],[-205,-94]],[[-257,-115],[-257,-115]],[[-254,-87],[-254,-87]],[[-382,-115],[-382,-115]],[[-242,-207],[-242,-207]],[[-452,-168],[-452,-168]],[[-755,83],[-755,83]],[[-642,27],[-642,27]],[[421,387],[421,387]],[[410,400],[410,400]],[[104,14],[104,14]],[[100,15],[100,15]],[[95,16],[95,16]],[[285,256],[285,256]],[[469,-558],[469,-558]],[[859,65],[859,65]],[[853,61],[853,61]],[[844,-1],[844,-1]],[[832,7],[832,7]],[[832,7],[832,7]],[[769,79],[769,79]],[[775,47],[775,47]],[[778,44],[778,44]],[[811,22],[811,22]],[[886,-5],[886,-5]],[[-403,463],[-403,463]],[[-414,474],[-414,474]],[[-424,483],[-424,483]],[[-434,493],[-434,493]],[[-444,502],[-444,502]],[[-394,454],[-394,454]],[[-384,443],[-384,443]],[[903,-375],[903,-375]],[[432,-104],[432,-104]],[[98,-170],[98,-170]],[[129,-156],[129,-156]],[[149,-166],[149,-166]],[[170,-155],[170,-155]],[[208,-154],[208,-154]],[[370,-106],[370,-106]],[[392,-119],[392,-119]],[[392,-119],[392,-119]],[[385,-107],[385,-107]],[[380,-107],[380,-107]],[[370,-106],[370,-106]],[[325,-108],[325,-108]],[[340,-108],[340,-108]],[[387,-49],[387,-49]],[[383,-58],[383,-58]],[[395,-80],[395,-80]],[[401,-79],[401,-79]],[[349,-152],[349,-152]],[[245,-107],[245,-107]],[[220,-200],[220,-200]],[[209,-163],[209,-163]],[[209,-155],[209,-155]],[[205,-222],[205,-222]],[[359,-263],[359,-263]],[[351,-263],[351,-263]],[[369,-298],[369,-298]],[[337,-298],[337,-298]],[[156,-48],[156,-48]],[[159,-71],[159,-71]],[[190,-99],[190,-99]],[[166,-79],[166,-79]],[[185,-115],[185,-115]],[[196,-114],[196,-114]],[[81,-250],[81,-250]],[[67,-224],[67,-224]],[[29,-196],[29,-196]],[[67,-208],[67,-208]],[[-11,-160],[-11,-160]],[[9,-180],[9,-180]],[[39,-181],[39,-181]],[[33,-196],[33,-196]],[[30,-233],[30,-233]],[[69,-207],[69,-207]],[[71,-117],[71,-117]],[[7,-313],[7,-313]],[[-64,-335],[-64,-335]],[[56,-245],[56,-245]],[[76,-132],[76,-132]],[[-57,-116],[-57,-116]],[[-24,-112],[-24,-112]],[[-13,-112],[-13,-112]],[[-2,-112],[-2,-112]],[[-2,-116],[-2,-116]],[[-11,-272],[-11,-272]],[[124,-157],[124,-157]],[[120,-157],[120,-157]],[[115,-157],[115,-157]],[[111,-173],[111,-173]],[[160,-129],[160,-129]],[[174,-129],[174,-129]],[[142,-130],[142,-130]],[[159,-129],[159,-129]],[[118,-131],[118,-131]],[[103,-116],[103,-116]],[[98,-115],[98,-115]],[[130,-131],[130,-131]],[[899,-357],[899,-357]],[[889,34],[889,34]],[[885,25],[885,25]],[[873,21],[873,21]],[[880,17],[880,17]],[[856,-401],[856,-401]],[[848,-358],[848,-358]],[[803,-431],[803,-431]],[[840,-401],[840,-401]],[[848,-523],[848,-523]],[[7,82],[7,82]],[[30,75],[30,75]],[[30,63],[30,63]],[[46,58],[46,58]],[[68,65],[68,65]],[[165,54],[165,54]],[[182,42],[182,42]],[[169,7],[169,7]],[[69,67],[69,67]],[[-91,-42],[-91,-42]],[[-222,132],[-222,132]],[[-256,123],[-256,123]],[[-299,115],[-299,115]],[[-301,131],[-301,131]],[[-243,153],[-243,153]],[[-306,155],[-306,155]],[[-307,157],[-307,157]],[[-262,165],[-262,165]],[[-244,211],[-244,211]],[[-244,209],[-244,209]],[[-420,154],[-420,154]],[[-359,-20],[-359,-20]],[[-246,192],[-246,192]],[[-286,224],[-286,224]],[[311,481],[311,481]],[[411,471],[411,471]],[[399,470],[399,470]],[[367,463],[367,463]],[[445,459],[445,459]],[[462,461],[462,461]],[[521,-498],[521,-498]],[[643,554],[643,554]],[[629,557],[629,557]],[[-589,162],[-589,162]],[[-640,-22],[-640,-22]],[[-282,118],[-282,118]],[[-221,129],[-221,129]],[[-238,126],[-238,126]],[[-225,145],[-225,145]],[[-267,137],[-267,137]],[[-284,134],[-284,134]],[[-272,161],[-272,161]],[[-289,158],[-289,158]],[[-226,156],[-226,156]],[[-289,160],[-289,160]],[[-228,171],[-228,171]],[[-245,168],[-245,168]],[[-299,40],[-299,40]],[[-313,45],[-313,45]],[[-314,28],[-314,28]],[[-356,102],[-356,102]],[[-343,107],[-343,107]],[[-341,84],[-341,84]],[[-328,92],[-328,92]],[[-315,99],[-315,99]],[[-321,104],[-321,104]],[[-329,113],[-329,113]],[[-376,126],[-376,126]],[[-363,131],[-363,131]],[[-349,137],[-349,137]],[[-336,143],[-336,143]],[[-323,148],[-323,148]],[[-387,136],[-387,136]],[[-375,142],[-375,142]],[[-362,147],[-362,147]],[[-349,153],[-349,153]],[[-337,158],[-337,158]],[[-324,163],[-324,163]],[[-355,179],[-355,179]],[[-330,190],[-330,190]],[[-343,184],[-343,184]],[[-403,158],[-403,158]],[[-390,164],[-390,164]],[[-378,169],[-378,169]],[[-341,189],[-341,189]],[[-354,183],[-354,183]],[[-367,177],[-367,177]],[[-381,171],[-381,171]],[[-394,166],[-394,166]],[[-407,160],[-407,160]],[[194,-39],[194,-39]],[[171,2],[171,2]],[[195,-22],[195,-22]],[[248,-34],[248,-34]],[[245,-107],[245,-107]],[[245,-89],[245,-89]],[[245,-88],[245,-88]],[[233,-321],[233,-321]],[[149,-20],[149,-20]],[[150,-22],[150,-22]],[[349,-176],[349,-176]],[[298,159],[298,159]],[[301,140],[301,140]],[[346,139],[346,139]],[[-222,285],[-222,285]],[[437,-247],[437,-247]],[[437,-247],[437,-247]],[[438,-253],[438,-253]],[[416,-260],[416,-260]],[[509,-500],[509,-500]],[[505,-499],[505,-499]],[[488,-605],[488,-605]],[[501,-565],[501,-565]],[[464,-617],[464,-617]],[[409,-284],[409,-284]],[[-353,580],[-353,580]],[[-348,567],[-348,567]],[[-339,578],[-339,578]],[[-336,566],[-336,566]],[[-329,577],[-329,577]],[[-324,576],[-324,576]],[[-319,576],[-319,576]],[[-314,575],[-314,575]],[[-380,584],[-380,584]],[[-391,585],[-391,585]],[[-405,576],[-405,576]],[[-411,590],[-411,590]],[[214,-422],[214,-422]],[[675,-137],[675,-137]],[[561,-87],[561,-87]],[[755,82],[755,82]],[[585,417],[585,417]],[[589,-3],[589,-3]],[[618,-31],[618,-31]],[[776,-105],[776,-105]],[[776,-105],[776,-105]],[[767,-56],[767,-56]],[[759,-47],[759,-47]],[[824,-61],[824,-61]],[[819,-38],[819,-38]],[[798,-43],[798,-43]],[[822,391],[822,391]],[[742,401],[742,401]],[[694,315],[694,315]],[[-688,313],[-688,313]],[[-715,27],[-715,27]],[[-698,-3],[-698,-3]],[[-752,45],[-752,45]],[[-720,-12],[-720,-12]],[[-603,-129],[-603,-129]],[[-588,-128],[-588,-128]],[[-594,-150],[-594,-150]],[[-585,-100],[-585,-100]],[[-601,-85],[-601,-85]],[[-576,-84],[-576,-84]],[[-619,-102],[-619,-102]],[[-635,-85],[-635,-85]],[[-396,-36],[-396,-36]],[[-418,-12],[-418,-12]],[[-585,-149],[-585,-149]],[[-327,-200],[-327,-200]],[[-247,-263],[-247,-263]],[[-255,-254],[-255,-254]],[[-220,-12],[-220,-12]],[[-219,-12],[-219,-12]],[[-203,-15],[-203,-15]],[[-186,-18],[-186,-18]],[[-171,-21],[-171,-21]],[[-206,17],[-206,17]],[[-186,14],[-186,14]],[[-165,11],[-165,11]],[[-163,27],[-163,27]],[[-183,30],[-183,30]],[[-204,33],[-204,33]],[[421,156],[421,156]],[[-379,-55],[-379,-55]],[[-375,-133],[-375,-133]],[[70,-426],[70,-426]],[[35,-20],[35,-20]],[[118,-77],[118,-77]],[[93,-64],[93,-64]],[[99,-59],[99,-59]],[[-12,-39],[-12,-39]],[[39,-44],[39,-44]],[[65,-53],[65,-53]],[[40,-85],[40,-85]],[[54,-65],[54,-65]],[[50,-2],[50,-2]],[[70,19],[70,19]],[[47,-20],[47,-20]],[[53,46],[53,46]],[[888,-518],[888,-518]],[[-138,194],[-138,194]],[[300,-308],[300,-308]],[[276,-171],[276,-171]],[[133,-581],[133,-581]],[[921,-38],[921,-38]],[[-138,-33],[-138,-33]],[[-120,-35],[-120,-35]],[[-100,-39],[-100,-39]],[[-110,-20],[-110,-20]],[[-127,-17],[-127,-17]],[[-145,-15],[-145,-15]],[[-128,19],[-128,19]],[[-85,62],[-85,62]],[[-102,112],[-102,112]],[[606,101],[606,101]],[[-23,-414],[-23,-414]],[[23,-454],[23,-454]],[[338,327],[338,327]],[[371,403],[371,403]],[[288,143],[288,143]],[[591,-148],[591,-148]],[[-20,-386],[-20,-386]]],"park":[[[445,-71],[445,-71]],[[606,-525],[606,-525]],[[62,208],[62,208]],[[-272,30],[-272,30]],[[-280,36],[-280,36]],[[-289,53],[-289,53]],[[-276,84],[-276,84]],[[226,-94],[226,-94]],[[-15,124],[-15,124]],[[151,-532],[151,-532]],[[-430,61],[-430,61]],[[-449,-35],[-449,-35]],[[-688,-57],[-688,-57]],[[-1100,-206],[-1100,-206]],[[-886,365],[-886,365]],[[838,-124],[838,-124]],[[107,110],[107,110]],[[-157,-98],[-157,-98]],[[-139,-86],[-139,-86]],[[-156,-98],[-156,-98]],[[546,-408],[546,-408]],[[353,287],[353,287]],[[354,268],[354,268]],[[-365,-191],[-365,-191]],[[-379,-115],[-379,-115]],[[-825,233],[-825,233]],[[-177,-360],[-177,-360]],[[-238,-38],[-238,-38]],[[-357,-21],[-357,-21]],[[-6,-573],[-6,-573]],[[121,-579],[121,-579]],[[155,377],[155,377]],[[106,378],[106,378]],[[-207,195],[-207,195]],[[919,235],[919,235]]],"water":[[[260,-320],[260,-320]],[[314,-325],[314,-325]],[[-1193,380],[-883,380]],[[-883,380],[-821,369],[-781,371],[-749,376],[-709,393],[-680,415],[-567,526],[-525,576],[-478,608],[-403,606],[-181,570],[-117,589],[-100,586],[-75,554],[-57,543],[25,522],[242,514],[384,500],[546,476],[797,425],[1004,369],[1061,378],[1101,395],[1258,555],[1305,592],[1401,650],[1521,692],[1631,719],[1700,721]],[[-807,421],[-807,421]],[[-870,504],[-870,504]],[[-874,478],[-874,478]],[[-877,448],[-877,448]],[[-879,433],[-879,433]]],"names":[["環河快速道路",316,-936,-44,"major"],["西昌街",372,-735,-86,"minor"],["和平西路三段",721,-55,43,"major"],["萬大路",351,388,-87,"major"],["桂林路244巷",-324,-350,-50,"minor"],["桂林路246巷42弄",-488,-231,-51,"minor"],["環河南路二段100巷",-202,-341,37,"minor"],["環河南路二段130巷6弄",-212,-331,-50,"minor"],["環河南路二段130巷2弄",-227,-266,-50,"minor"],["和平西路三段309巷15弄",-527,-178,-86,"minor"],["桂林路242巷",-242,-372,-54,"minor"],["桂林路242巷107弄",-293,-239,19,"minor"],["環河南路二段130巷",-272,-305,41,"minor"],["環河南路二段",-784,652,71,"mid"],["環河南路二段110巷",-222,-339,8,"minor"],["長順街60巷",-838,352,58,"minor"],["環河南路一段",85,-673,-58,"mid"],["華江橋",-483,-172,2,"major"],["梧州街",62,-335,-89,"minor"],["柳州街",809,-335,-84,"minor"],["莒光路",123,323,-2,"mid"],["艋舺大道120巷",533,128,90,"minor"],["西藏路125巷",591,720,74,"minor"],["中華路二段364巷",717,589,-32,"minor"],["大理街160巷",-320,174,-74,"minor"],["環河南路二段125巷15弄",-253,-63,-49,"minor"],["西園路二段96巷",-89,333,22,"minor"],["環河南路二段280巷",-649,150,36,"minor"],["長順街",-720,240,31,"minor"],["環河南路二段250巷",-603,44,33,"minor"],["西園路二段140巷",-230,243,35,"minor"],["廣州街",821,-270,10,"minor"],["中華路二段",919,-140,-63,"major"],["華翠大橋",-1155,757,-22,"major"],["艋舺大道",-391,429,-44,"major"],["雙園街60巷",-411,536,-45,"minor"],["西藏路",-564,538,46,"mid"],["萬板大橋",-868,376,-13,"mid"],["西園路一段",180,-38,-60,"major"],["南寧路",796,-277,-34,"mid"],["西園路二段",-22,312,-65,"major"],["雙園街",-270,470,46,"minor"],["康定路",364,74,-68,"mid"],["三水街",720,-142,51,"minor"],["萬大路85巷",427,407,-1,"minor"],["和平西路二段",823,60,44,"major"],["中華路二段75巷",1015,43,21,"minor"],["大理街",-22,-16,-6,"minor"],["和平西路三段382巷11弄",-480,-55,2,"minor"],["和平西路三段382巷2弄",-652,-108,4,"minor"],["和平西路三段382巷",-556,-128,-88,"minor"],["環河南路二段198巷",-388,-15,39,"minor"],["和平西路三段302巷",-384,-121,83,"minor"],["和平西路三段302巷3弄",-411,-101,3,"minor"],["長順街123巷",-807,157,-67,"minor"],["環河南路快速道路",31,-526,-53,"major"],["長順街14巷1弄",-755,274,30,"minor"],["長順街14巷",-711,302,-54,"minor"],["惠安街",984,504,51,"minor"],["興寧街",431,188,-2,"minor"],["興寧街66巷",270,215,81,"minor"],["大埔街",747,166,20,"minor"],["莒光路197巷",488,364,89,"minor"],["中華路二段130巷",679,359,-2,"minor"],["莒光路153巷",602,373,88,"minor"],["大理街42巷",324,-7,87,"minor"],["永福街",774,-482,12,"minor"],["雙園街89巷",-409,185,-51,"minor"],["萬大路90巷",252,411,-2,"minor"],["雙園街122巷",-480,320,-70,"minor"],["莒光路347巷27弄",39,408,62,"minor"],["雙園街152巷",-561,305,-53,"minor"],["中華路二段315巷5弄",830,451,50,"minor"],["昆明街",707,-537,-79,"minor"],["桂林路",775,-427,11,"mid"],["中華路二段307巷",842,578,-40,"minor"],["西園路一段306巷",235,57,-16,"minor"],["大理街116巷",49,8,73,"minor"],["華江橋機車專用道",-438,-363,-31,"minor"],["國興路",802,690,50,"minor"],["興寧街8巷",462,224,90,"minor"],["寶興街",-460,636,52,"mid"],["西園路二段254巷",-269,598,61,"minor"],["雙園路18巷",-272,570,-65,"minor"],["西藏路269巷",-365,613,-66,"minor"],["西藏路199巷",284,711,-89,"minor"],["莒光路299巷",218,427,89,"minor"],["雙園街67巷",-266,392,-45,"minor"],["雙園街40巷",-333,531,-51,"minor"],["雙園街49巷",-217,414,-47,"minor"],["雙園街107巷",-465,185,-51,"minor"],["大理街175巷",-247,-65,82,"minor"],["大理街160巷11弄",-302,82,30,"minor"],["環河南路二段125巷",-325,-21,39,"minor"],["大理街70巷",-384,98,-51,"minor"],["環河南路二段149巷",-398,16,39,"minor"],["和平西路三段159巷",139,-189,80,"minor"],["大理街160巷20弄",-211,192,55,"minor"],["環河南路二段125巷7弄",-270,-89,-43,"minor"],["大理街159巷",-108,-64,75,"minor"],["艋舺大道275巷",71,82,72,"minor"],["和平西路三段298巷",-353,-109,-50,"minor"],["環河南路二段250巷56弄",-623,-60,-59,"minor"],["環河南路二段250巷25弄",-714,68,-62,"minor"],["桂林路246巷",-355,-376,-34,"minor"],["環河南路二段250巷33弄",-751,26,-59,"minor"],["長順街107巷",-748,138,-68,"minor"],["長順街99巷",-640,131,-60,"minor"],["長順街99巷16弄",-683,192,40,"minor"],["長順街98巷",-612,181,-59,"minor"],["汀州路一段",753,76,22,"mid"],["中華路二段364巷24弄",678,545,48,"minor"],["中華路二段300巷13弄",665,519,-79,"minor"],["貴陽街二段",904,-605,10,"minor"],["艋岬大道336巷",-87,180,77,"minor"],["西園路二段52巷",-76,250,-29,"minor"],["大埔街21巷",895,191,-4,"minor"],["桂林路242巷48弄",-293,-239,42,"minor"],["桂林路242巷46弄",-277,-255,39,"minor"],["桂林路242巷53弄",-254,-358,40,"minor"],["環河南路二段46巷",-107,-444,40,"minor"],["桂林路228巷",-126,-460,-49,"minor"],["環河南路二段48巷",-125,-423,40,"minor"],["桂林路224巷",-128,-420,-49,"minor"],["大埔街22巷",695,157,3,"minor"],["艋舺大道120巷11弄",615,144,12,"minor"],["莒光路166巷",531,297,87,"minor"],["莒光路144巷",588,270,82,"minor"],["西園路一段282巷",148,36,-3,"minor"],["西園路一段203巷",295,28,-3,"minor"],["和平西路三段42巷",395,-11,-3,"minor"],["桂林路57巷",609,-518,-79,"minor"],["廣州街194巷",129,-250,89,"minor"],["堤外機車道",101,-733,-40,"minor"],["桂林路228巷13弄",-146,-436,42,"minor"],["萬大路85巷20弄",492,469,87,"minor"]]};
+
+// 投影：與底圖資料相同，以 (25.0340, 121.4970) 為原點、單位公尺
+const LAT0 = 25.0340, LON0 = 121.4970;
+const KX = 111320 * Math.cos(LAT0 * Math.PI / 180), KY = 110574;
+const fromLL = (lat, lon) => [(lat - LAT0) * KY, (lon - LON0) * KX];
+const fromXY = p => [-p[1], p[0]];
+
+const STOPS = [
+  { id:'A', name:'糖廍文化園區', role:'起點／回收點', lat:25.03338, lon:121.49486,
+    facts:[['地址','臺北市萬華區大理街 132 之 10 號'],['電話','02-2306-7975'],['開放','約 10:00–17:00，週一休（⚠️ 各來源不一致）'],['交接點','園區櫃台（需申請）']],
+    story:'清代大理街一帶就有私人糖廍種蔗製糖。日治時期設立台北製糖株式會社，是北台灣第一座現代化製糖廠。戰後改作倉庫，2003 年指定為市定古蹟，2011 年以糖廍文化園區開放。',
+    clue:'很久以前，這裡的空氣是甜的。\n現在甘蔗還站在原地，紅磚倉庫也還記得糖的味道。\n去找那台載過甘蔗的小火車，相機就在附近等你。',
+    shoot:['建築｜紅磚倉庫的拱門、梯形柱、月台與五分車軌道','人｜看展的人、排練的藝團、甘蔗田旁散步的鄰居'] },
+  { id:'D', name:'華江整宅', role:'居住日常', lat:25.0362, lon:121.4950, approx:true,
+    facts:[['位置','和平西路與環河南路口東北側（⚠️ 地圖位置為估計）'],['興建','1969 年規劃，1960–70 年代興建'],['交接點','一樓店家（待洽談）']],
+    story:'市府為華江橋工程拆遷戶規劃的安置住宅，由沈祖海、陳其寬等六位建築師參與設計。幾棟弧形五層樓以環形天橋串連，是常見的影視取景地。',
+    clue:'這裡的房子是彎的，路也是彎的，連天上都有一條繞圈的橋。\n爬上去繞一圈，你會看到很多人的家。\n下來之後，去早餐吃起來最香的那家問問看。',
+    shoot:['建築｜弧形立面、環形天橋、二樓廊道','人｜一樓早餐店的早晨、天橋上經過的居民'],
+    warn:'這裡是住家。不要對著窗戶或住戶家門拍，拍人前先問。' },
+  { id:'B', name:'萬華車站／萬華林宅', role:'交通入口', lat:25.0331, lon:121.4997,
+    facts:[['車站','1901 年「艋舺停車場」開業，1918 年遷現址'],['林宅','1932 年起造，市定古蹟，現為星巴克'],['交接點','車站周邊在地小店（待找）']],
+    story:'很多人第一次認識萬華，是從這個車站走出來的那一刻。1950 年代起，車站帶來的人潮與貨運，讓周邊長出台灣第一個成衣批發市場。',
+    clue:'一百多年前，火車在這裡停下來，人跟布料一起下車。\n車站旁邊有一棟老房子，現在每天都有人在裡面喝咖啡。\n從老房子門口往＿＿走，找一扇＿＿顏色的門。',
+    shoot:['建築｜林宅立面的洋樓細節、車站出口與艋舺大道','人｜趕車的人、等人的人'] },
+  { id:'C', name:'大理街服飾商圈', role:'產業記憶', lat:25.03244, lon:121.49826,
+    facts:[['據點','西園29服飾創作基地（西園路二段 9 號）'],['全盛期','業者逾 2,000 家、從業約 10 萬人（口述）'],['交接點','服飾文化館或老店（待洽談）']],
+    story:'因靠近萬華車站，1950 年代起形成台灣第一個成衣批發市場。1980 年代後期產業外移，商圈逐漸沒落，現在仍有店家營業。',
+    clue:'這條街曾經有十萬個人在剪布、縫線、搬貨。\n現在走慢一點，你還聽得到縫紉機的聲音。\n找一間門口掛著＿＿的店，跟老闆說「我是來找相機的老鼠」。',
+    shoot:['人｜捆貨、搬布、整理衣架的老闆，手寫價格牌','建築｜連續騎樓街屋、鐵捲門、層疊招牌'] },
+  { id:'E', name:'剝皮寮歷史街區', role:'第二階段延伸', lat:25.03685, lon:121.50227, ext:true,
+    facts:[['地址','臺北市萬華區康定路 173 巷'],['電話','02-2302-3199'],['開放','街區 09:00–21:00；展間 09:00–18:00，週一休']],
+    story:'保存清代街屋與日治時期牌樓厝。離糖廍較遠、觀光客多，測試順利後再作為往龍山寺方向延伸的一站。',
+    clue:'（第二階段再寫）', shoot:['建築｜紅磚牆、拱形騎樓、雕花窗櫺'] }
+];
+const ROUTE = ['A','D','B','C','A'];
+
+// 示意照片：實際使用時由試算表匯出，每列一張照片
+const THEMES = { people:'人的日常與意外發現', arch:'建築類型與街道樣貌' };
+const PHOTOS = [
+  ['C1',3,25.03359,121.4946,'arch','園區甘蔗田','甘蔗比我還高。','小米'],
+  ['C1',7,25.03456,121.49457,'people','大理街轉角','阿伯在門口泡茶，跟我點頭。','小米'],
+  ['C1',11,25.03517,121.49484,'arch','和平西路騎樓','騎樓的柱子每一根顏色都不一樣。','阿哲'],
+  ['C1',15,25.03549,121.49499,'arch','華江整宅天橋','繞了一圈又回到原點。','阿哲'],
+  ['C2',3,25.03544,121.49553,'people','整宅一樓早餐店','菜包已經賣完了。','Momo'],
+  ['C2',7,25.03469,121.49644,'arch','大理街老公寓','鐵窗花是一朵一朵的。','Momo'],
+  ['C2',11,25.0342,121.4982,'people','萬華林宅前','有人在古蹟裡面寫功課。','路過的鼠'],
+  ['C2',15,25.03319,121.49889,'arch','西園路口','招牌疊了五層。','路過的鼠'],
+  ['C3',3,25.03312,121.49988,'people','萬華車站出口','大家都低頭走得很快。','Yuni'],
+  ['C3',7,25.03291,121.49908,'people','西園路服飾店','老闆一邊講電話一邊摺衣服。','Yuni'],
+  ['C3',11,25.03307,121.49844,'arch','大理街騎樓','鐵捲門上還有舊店名。','小林'],
+  ['C3',15,25.03281,121.49827,'people','服飾文化館前','一隻貓在睡午覺。是嚮導嗎？','小林'],
+  ['C4',3,25.03227,121.49753,'arch','西園路二段','斜斜的屋頂下是新的咖啡店。','阿寬'],
+  ['C4',7,25.03264,121.49724,'people','巷口雜貨店','奶奶說這條街以前很熱鬧。','阿寬'],
+  ['C4',11,25.03277,121.4962,'arch','大理街住宅','陽台種滿了盆栽。','Hana'],
+  ['C4',15,25.03337,121.49518,'people','糖廍園區門口','把相機交回去的時候有點捨不得。','Hana']
+].map(([cam,frame,lat,lon,theme,place,quote,who]) => ({cam,frame,lat,lon,theme,place,quote,who,code:`${cam}-${String(frame).padStart(2,'0')}`}));
+const CAMS = [...new Set(PHOTOS.map(p => p.cam))];
+
+// ---------- 地圖 ----------
+const map = L.map('map', { crs:L.CRS.Simple, zoomControl:false, attributionControl:false, zoomSnap:.25, zoomDelta:.5, minZoom:-2.5, maxZoom:2 });
+const el = document.getElementById('map');
+const poly = (pts, cls, closed) => (closed ? L.polygon : L.polyline)(pts.map(fromXY), { className:cls, interactive:false, smoothFactor:.5 });
+
+BASE.park.forEach(p => poly(p,'r-park',true).addTo(map));
+BASE.water.forEach(p => poly(p,'r-water').addTo(map));
+BASE.bld.forEach(p => poly(p,'r-bld',true).addTo(map));
+const ORDER = ['alley','minor','mid','major'];
+ORDER.forEach(c => BASE[c].forEach(p => poly(p,`r-case ${c}`).addTo(map)));
+ORDER.forEach(c => BASE[c].forEach(p => poly(p,`r-fill ${c}`).addTo(map)));
+BASE.rail.forEach(p => poly(p,'r-rail').addTo(map));
+
+const shown = new Set();
+BASE.names.forEach(([name,x,y,ang,cls]) => {
+  if (/[巷弄]|機車|快速|堤外|大橋|華江橋/.test(name) || shown.has(name)) return;
+  shown.add(name);
+  L.marker(fromXY([x,y]), { interactive:false, keyboard:false,
+    icon:L.divIcon({ className:`street-wrap ${cls}`, iconSize:[0,0], html:`<span class="street" style="transform:rotate(${ang}deg)">${name}</span>` }) }).addTo(map);
+});
+
+const stopById = Object.fromEntries(STOPS.map(s => [s.id, s]));
+const routePts = ROUTE.map(id => fromLL(stopById[id].lat, stopById[id].lon));
+L.polyline(routePts, { className:'route', interactive:false }).addTo(map);
+L.polyline([fromLL(stopById.B.lat, stopById.B.lon), fromLL(stopById.E.lat, stopById.E.lon)], { className:'route ext', interactive:false }).addTo(map);
+
+const stopMarkers = {};
+STOPS.forEach(s => {
+  const m = L.marker(fromLL(s.lat, s.lon), { title:s.name, riseOnHover:true, zIndexOffset:500,
+    icon:L.divIcon({ className:'', iconSize:[0,0], html:`<div class="stop-pin${s.ext?' ext':''}" style="transform:translate(-50%,-15px)"><b>${s.id}</b><i>${s.name}</i></div>` }) }).addTo(map);
+  m.on('click', () => showStop(s.id));
+  stopMarkers[s.id] = m;
+});
+
+const photoMarkers = PHOTOS.map(p => {
+  const m = L.marker(fromLL(p.lat, p.lon), { title:p.code,
+    icon:L.divIcon({ className:'', iconSize:[0,0], html:`<div class="ph-pin ${p.theme}" style="transform:translate(-50%,-50%)">${String(p.frame).padStart(2,'0')}</div>` }) }).addTo(map);
+  m.on('click', () => showPhoto(p.code));
+  return { p, m };
+});
+
+let camPath = null;
+const state = { theme:'all', cam:'all', sel:null };
+
+function applyFilters(){
+  photoMarkers.forEach(({p,m}) => {
+    const pin = m.getElement()?.firstElementChild; if (!pin) return;
+    const ok = (state.theme==='all' || p.theme===state.theme) && (state.cam==='all' || p.cam===state.cam);
+    pin.classList.toggle('dim', !ok);
+    pin.classList.toggle('on', state.sel===p.code);
+  });
+  Object.entries(stopMarkers).forEach(([id,m]) => m.getElement()?.firstElementChild.classList.toggle('on', state.sel===id));
+  if (camPath) { map.removeLayer(camPath); camPath = null; }
+  if (state.cam !== 'all') {
+    const pts = PHOTOS.filter(p => p.cam===state.cam).sort((a,b) => a.frame-b.frame).map(p => fromLL(p.lat,p.lon));
+    camPath = L.polyline(pts, { className:'campath', interactive:false }).addTo(map);
+  }
+}
+
+function setScale(){
+  const z = map.getZoom();
+  el.style.setProperty('--s', Math.pow(2, z));
+  el.classList.toggle('far', z < -0.75);
+  el.classList.toggle('veryfar', z < -1.75);
+}
+map.on('zoomend', setScale);
+
+const bounds = L.latLngBounds(STOPS.filter(s=>!s.ext).map(s => fromLL(s.lat, s.lon))).pad(.45);
+map.setMaxBounds(L.latLngBounds([fromXY([-2500,-2500]), fromXY([2500,2500])]));
+map.fitBounds(bounds, { animate:false });
+setScale();
+// 容器尺寸在版面完成後才確定，第一次量到尺寸時重新對焦
+let fitted = false;
+const refit = () => { map.invalidateSize({ animate:false }); map.fitBounds(bounds, { animate:false }); setScale(); };
+new ResizeObserver(() => {
+  map.invalidateSize({ animate:false });
+  if (!fitted && el.clientWidth > 0) { fitted = true; refit(); }
+}).observe(el);
+// 放在分頁裡時，第一次切到地圖分頁後版面穩定了再對焦一次
+let viewShown = false;
+window.addEventListener('mapview:show', () => { if (viewShown) return; viewShown = true; requestAnimationFrame(() => requestAnimationFrame(refit)); });
+document.getElementById('zin').onclick = () => map.zoomIn();
+document.getElementById('zout').onclick = () => map.zoomOut();
+
+// ---------- 側欄 ----------
+const panel = document.getElementById('panel');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function chipRow(key, opts){
+  return `<div class="chips" role="group">${opts.map(([v,label,dot]) =>
+    `<button class="chip" data-k="${key}" data-v="${v}" aria-pressed="${state[key]===v}">${dot?`<span class="dot ${dot}"></span>`:''}${label}</button>`).join('')}</div>`;
+}
+
+function showHome(){
+  state.sel = null;
+  const counts = { people:PHOTOS.filter(p=>p.theme==='people').length, arch:PHOTOS.filter(p=>p.theme==='arch').length };
+  panel.innerHTML = `
+    <div>
+      <p class="eyebrow">Camera relay · Wanhua</p>
+      <h2>糖廍周邊的 ${PHOTOS.length} 個瞬間</h2>
+    </div>
+    <p class="lede">${CAMS.length} 台即可拍沿著交接點接力，每位旅人留下兩種視角的照片。點地圖上的編號看照片，點英文字母看交接點與貓咪留下的線索。</p>
+    <p class="sample">※ 目前照片、暱稱與留言皆為示意資料，交接點位置與文字取自〈地點資料與實作規劃〉。</p>
+    <div class="sect">
+      <h3>拍攝主題</h3>
+      ${chipRow('theme', [['all','全部'],['people',`人（${counts.people}）`,'people'],['arch',`建築（${counts.arch}）`,'arch']])}
+    </div>
+    <div class="sect">
+      <h3>相機</h3>
+      ${chipRow('cam', [['all','全部'], ...CAMS.map(c => [c, c])])}
+      <p class="sample">選一台相機，地圖會畫出它依張數順序走過的路。</p>
+    </div>
+    <div class="sect">
+      <h3>交接點</h3>
+      <ul class="stops">${STOPS.map(s => `<li><button data-stop="${s.id}"><span class="stop-letter${s.ext?' ext':''}">${s.id}</span><span><span class="stop-name">${s.name}</span><span class="stop-role">${s.role}</span></span></button></li>`).join('')}</ul>
+      <p class="sample">紅色虛線為示意路線 A → D → B → C → A，實際順序待實地踏查後決定。</p>
+    </div>`;
+  applyFilters();
+}
+
+function showStop(id){
+  const s = stopById[id]; state.sel = id;
+  panel.innerHTML = `
+    <button class="back" data-home>← 回到總覽</button>
+    <div>
+      <p class="eyebrow">交接點 ${s.id} · ${s.role}</p>
+      <h2>${s.name}</h2>
+    </div>
+    <dl class="facts">${s.facts.map(([k,v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+    <p>${s.story}</p>
+    <div class="sect">
+      <h3>貓咪線索</h3>
+      <div class="note">${esc(s.clue)}<span class="note-sign">—— 一隻住在這裡的貓</span></div>
+    </div>
+    <div class="sect">
+      <h3>拍攝提示</h3>
+      <ul class="plain">${s.shoot.map(t => `<li>${t}</li>`).join('')}</ul>
+      ${s.warn ? `<p class="warn">${s.warn}</p>` : ''}
+    </div>`;
+  applyFilters();
+  map.panTo(fromLL(s.lat, s.lon));
+}
+
+function showPhoto(code){
+  const p = PHOTOS.find(x => x.code===code); state.sel = code;
+  const same = PHOTOS.filter(x => x.cam===p.cam).sort((a,b) => a.frame-b.frame);
+  const i = same.indexOf(p);
+  panel.innerHTML = `
+    <button class="back" data-home>← 回到總覽</button>
+    <div class="film"><div class="frame ${p.theme}"><span class="ph">照片沖洗後放這裡</span><span class="stamp">'26 11 ${String(14+i).padStart(2,'0')}</span></div></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span class="code">${p.code}</span>
+      <span class="chip" style="cursor:default"><span class="dot ${p.theme}"></span>${THEMES[p.theme]}</span>
+    </div>
+    <div>
+      <p class="eyebrow">${esc(p.place)}</p>
+      <p class="quote">「${esc(p.quote)}」</p>
+      <p class="sample">—— ${esc(p.who)}（示意資料）</p>
+    </div>
+    <div class="sect">
+      <h3>相機 ${p.cam} 的其他照片</h3>
+      <div class="chips">${same.map(x => `<button class="chip" data-photo="${x.code}" aria-pressed="${x.code===code}">${String(x.frame).padStart(2,'0')}</button>`).join('')}</div>
+    </div>`;
+  applyFilters();
+  map.panTo(fromLL(p.lat, p.lon));
+}
+
+panel.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.home !== undefined) return showHome();
+  if (b.dataset.stop) return showStop(b.dataset.stop);
+  if (b.dataset.photo) return showPhoto(b.dataset.photo);
+  if (b.dataset.k) { state[b.dataset.k] = b.dataset.v; showHome(); }
+});
+
+showHome();
+}</script>
+
+</div>
+
+<script>{
+const views = { hb:document.getElementById('view-hb'), map:document.getElementById('view-map') };
+const tabs = [...document.querySelectorAll('.tab')];
+function go(v, push){
+  Object.entries(views).forEach(([k, el]) => el.hidden = k !== v);
+  tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.goto === v)));
+  if (push) { try { history.replaceState(null, '', v === 'map' ? '#map' : location.pathname + location.search); } catch {} }
+  window.scrollTo(0, 0);
+  if (v === 'map') window.dispatchEvent(new Event('mapview:show'));
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-goto]'); if (!t) return;
+  e.preventDefault(); go(t.dataset.goto, true);
+});
+go(location.hash === '#map' ? 'map' : 'hb', false);
+}</script>
+
+</body>
+</html>
